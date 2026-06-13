@@ -8,8 +8,8 @@
 
 Recommended: **Mage Balance** (with the tagline "Early-access spell rebalance").
 
-## Short description (≤ 350 chars)
-Early rebalance of Gothic 1 Remake mage spells — deliberately released early to gather feedback, so expect many changes and a long to-do list. The headline fixes are already in: a devastating Fire Rain (bigger area + more damage) and a stronger Fireball, plus Death Breath, Ice Arrow & more. Feedback & contributors welcome!
+## Short description (plain text, 339 / 350 chars)
+Early rebalance of Gothic 1 Remake mage spells. Released early on purpose to gather feedback, so expect frequent changes and a long to-do list. The big fixes are already in: a devastating Fire Rain (bigger area and more damage) and a stronger Fireball, plus Death Breath, Ice Arrow, Pyrokinesis and more. Feedback and contributors welcome!
 
 ## Full description (Nexus BBCode)
 
