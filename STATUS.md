@@ -1,63 +1,54 @@
-# Mage Balance — Zwischenstand / Handoff (Stand: 2026-06-13)
+# Mage Balance — dev notes / status (2026-06-13)
 
-## TL;DR — die Mechanik funktioniert ✅
-FireBolt (Feuerpfeil) macht in-game skalierten Schaden, **stabil, kein Crash**.
-Der Schreib-Weg über die Zauber-Definition (`m_DamageBase`) ging nicht; der
-funktionierende Weg ist **Ziel-`DamageMultiplier` beim Treffer**.
+## Current mechanism (works, v0.3.0)
+Spell damage is edited directly on each spell's **definition CDO**:
 
-## Wie es funktioniert (final)
-Beim Treffer eines Spieler-Spell-Projektils:
-1. Hook **`/Script/G1R.ProjectileVisual:OnHitServer`** feuert. `self` = Projektil-Actor
-   (`BP_Firebolt_C`). Dessen Felder: `m_ProjectileDefinition` (→ Zauber erkennen),
-   `Instigator`/`Owner` (→ „vom Spieler" prüfen).
-2. **arg #2** des Hooks = der getroffene Actor (Gegner).
-3. Nur fortfahren wenn Klassenname „Character" enthält (sonst Treffer auf Deko/Props
-   wie `AlkimiaLightweightDecorationActor` → `m_CharacterState`-Read crasht hart).
-4. Gegner → `m_CharacterState` (GothicNPCState) → Key `State_..._NNN` extrahieren →
-   `FindAllOf("AttributeSet_Health")`, passenden Holder per Key finden (gecacht).
-5. Dessen **`DamageMultiplier`** (GAS-Attribut, Struct mit `BaseValue`/`CurrentValue`)
-   auf `vanilla × Faktor` setzen (direkter Struct-Write + Readback-Verify — kein
-   ImportText nötig), nach **600 ms** via `ExecuteWithDelay` zurücksetzen.
-   → nur dieser eine Treffer ist skaliert.
+```lua
+local cdo = StaticFindObject("/Script/Angelscript.Default__" .. defName)  -- Default__ = the CDO
+-- base damage: a TMap keyed by damage-type tag; iterate, write via v:set(x)
+cdo.m_DamageBase:ForEach(function(_, v) v:set(x) end)
+-- per-circle progression: Map -> { m_DamageByMagicCircle: Array of { m_CircleTag, m_Damage } }
+cdo.m_DamageMagicCircleProgression:ForEach(function(_, v)
+    v:get().m_DamageByMagicCircle:ForEach(function(idx, e) e:get().m_Damage = x end)  -- idx 1=c2,2=c4,3=c6
+end)
+-- non-damage fields are plain scalars: cdo.m_Field = value
+```
 
-Code: `Scripts/main.lua`, Abschnitt „WEG B". Faktoren: `Scripts/config.lua` →
-`SpellDamageByClass` (Klassenname-Substring → Multiplikator).
+Vanilla is snapshotted once (`_G.__MB_vanilla`); target = `vanilla × factor` (or absolute
+values from config). Applied via a startup retry loop + re-applied ~4s after each
+`ClientRestart`. Idempotent.
 
-## Harte Crash-Regeln (gelernt — pcall fängt C++-Crashes NICHT)
-1. **Nie `unwrap()`/`:get()` auf einem direkt gelesenen Objekt-Feld** — nur auf
-   Hook-Parametern (self, varargs). Felder direkt lesen + `GetFullName` in pcall
-   (`field_fullname`).
-2. Ein Projektil trifft **alles** mit Kollision (Deko, Fässer). `m_CharacterState`
-   auf Nicht-Charakter = harter Crash → erst `class_name:find("Character")` prüfen.
-3. Dev-Hilfe: `config.DebugSteps=true` schaltet `[DBG]`-Breadcrumbs vor jeden
-   riskanten Engine-Call → letzte `[DBG]`-Zeile vor dem Crash = die Schuld-Zeile.
+**Crash rules (uncatchable C++ — pcall can't catch):**
+- NEVER read/`:get()`/`:ToString()` the map **KEY** (FGameplayTag) → instant crash. Only use values.
+- NEVER `unwrap()`/`:get()` a directly-read object field — only hook params. Read fields directly + pcall.
+- A spell can match a non-definition object (rune/ability) whose `m_DamageBase` iteration crashes →
+  that's why `mb_try`/`mb_fields` are read-only and `mb_fields` never iterates maps.
 
-## So fügst du einen Zauber hinzu
-1. `config.lua`: `Verbose=true` (Standard). In-game den Zauber **einmal casten**.
-2. `UE4SS.log`: Zeile `SPELL <Name>ProjectileDefinition /Script/Angelscript...` →
-   den markanten Namens-Teil nehmen (z. B. `Fireball`, `IceArrow`).
-3. In `SpellDamageByClass` eine Zeile ergänzen: `Fireball = 1.5,`. Fertig
-   (Substring-Match auf den Klassennamen, case-sensitiv).
+## Config
+`Scripts/config.lua → Spells` — one block per spell: `{ class, damage, fields?, enabled? }`.
+`damage` = number (factor) or `{ base, c2, c4, c6 }` (absolute). `_Lvl1/2/3` covered automatically.
 
-## Bekannte Zauber-Klassen (bisher)
-- `FireBolt` → Feuerpfeil (m_DamageBase m_Damage = 35; in vanilla ok)
-- `BallLightning` → Kugelblitz (m_DamageBase LEER — Schaden woanders; OnHitServer-
-  Skalierung greift evtl. trotzdem, sobald BallLightning wirklich trifft → testen)
+## Known spell definition classes
+| Spell | class | vanilla base | notes |
+|---|---|---|---|
+| Feuerpfeil | `FireBoltProjectileDefinition` | 35 (c2/4/6 40/50/65) | not chargeable |
+| Feuerball | `FireBallProjectileDefinition` | 60/90/120 (`_Lvl1/2/3`) | chargeable |
+| Kugelblitz | `BallLightningDefinition` | 50/70/90 (`_Lvl1/2/3`; `_Base` empty) | chargeable |
+| Eispfeil | `IceBoltProjectileDefinition` | 20 (c2/4/6 30/40/50) | |
+| Feuerregen | `FireRainDefinition` | 45 (flat, NO circle progression) | AoE; `m_XOffset/m_YOffset` = rain area, `m_LifeTime`, `m_Probability` |
 
-## Was noch offen ist
-- **Andere Zauber erfassen**: Blitz, Feuerball, Eispfeil, Feuerregen … Klassennamen
-  fehlen (brauchen die Runen im Save). Werte dann nach DaddyKickem eintragen.
-- **Nicht-Projektil-Zauber** (Todeshauch = Atem-Kegel, Sturm-/Windfaust): feuern
-  `OnHitServer` vermutlich nicht → eigener Hook/Pfad. Separates Thema.
-- **Kugelblitz**: `m_DamageBase` leer — prüfen ob OnHitServer beim echten Treffer
-  greift; falls nicht, Schadenspfad gesondert finden.
-- **Release-Putz**: `DebugSteps=false` (erledigt), tote Recon-Funktionen entfernt
-  (erledigt). Ggf. Konsolenbefehle (`mb_*`) behalten — harmlos, nützlich.
-- **AoE/Mehrfachtreffer**: DamageMultiplier wirkt im 600-ms-Fenster auf ALLE
-  eingehenden Quellen des Ziels (minimaler Nebeneffekt; akzeptabel).
+Discover more: cast the spell → `[SPELL] <class>` in UE4SS.log, or `mb_try <name>` / `mb_fields <name>`.
 
-## Test-Loop & Pfade
-Edit `G1R_MageBalance/G1R_MageBalance/Scripts/*` → nach
-`…\Gothic 1 Remake\G1R\Binaries\Win64\Mods\G1R_MageBalance\Scripts\` kopieren →
-**Spiel neu starten** (Hot-Reload aus) → casten/treffen → `…\Win64\UE4SS.log`.
-Konsole (ConsoleEnablerMod): `mb_spells`, `mb_dumpfirst`, `mb_dump <Klasse>`.
+## Open / next
+- **Blitz** ("lachhaft") — capture its class, then add (likely a projectile).
+- **Non-projectile spells**: Todeshauch (breath cone), Windfaust/Sturmfaust (fist), Eiswelle.
+  They don't use a `*ProjectileDefinition` with `m_DamageBase` → separate path (find their
+  damage source). Todeshauch also wants a damage-type fix (counts as wind) — deferred.
+- **Cast time / mana**: in `USpellConfig.m_SpellLevels` (FSpellLevelRange) — different object, not done.
+- FireRain rain-pattern fields (`m_Probability` 2, `m_Min/Max` 0/100, `m_Key/Key2` 2/4) —
+  effect not yet visually confirmed; `m_Key/Key2` look like circle breakpoints (leave alone).
+
+## Test loop
+Edit `G1R_MageBalance/Scripts/*` → copy to `…\Win64\Mods\G1R_MageBalance\Scripts\` → restart
+(hot-reload off) → cast / `mb_status` → read `…\Win64\UE4SS.log`. Install path:
+`C:\Program Files (x86)\Steam\steamapps\common\Gothic 1 Remake\G1R\Binaries\Win64`.

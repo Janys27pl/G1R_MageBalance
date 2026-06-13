@@ -2,6 +2,37 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.3.0-dev] — 2026-06-13
+
+Reworked the whole damage approach and the config schema.
+
+### Changed
+- **New damage mechanism: direct definition-CDO editing.** Replaced the previous
+  hit-time `DamageMultiplier` hook with editing each spell's definition CDO directly
+  (`StaticFindObject("…Default__<Name>")` → write `m_DamageBase` + the per-magic-circle
+  progression). Cleaner, per-spell **and** per-circle, applied once at load (re-applied on
+  level/chapter change), idempotent via a vanilla snapshot.
+- **New config schema — one readable block per spell** (`config.lua → Spells`):
+  `{ class, damage, fields?, enabled? }`. `damage` is a multiplier **or** an absolute
+  `{ base, c2, c4, c6 }` table.
+
+### Added
+- **Per-charge-level coverage** — chargeable spells (`…_Lvl1/2/3`, e.g. Feuerball,
+  Kugelblitz) are all balanced by a single config entry.
+- **Field overrides** (`fields = { … }`) — set any plain stat absolutely (AoE area,
+  duration, speed, …), e.g. Feuerregen's rain area.
+- Console commands `mb_status`, `mb_apply`, `mb_try <name>`, `mb_fields <name>`.
+- Spell-name discovery: casting a spell logs `[SPELL] <class> base=…`.
+
+### Balance (defaults)
+- Feuerball ×1.5 · Feuerregen ×2.5 (+ area 1600) · Eispfeil ×1.2 ·
+  Feuerpfeil / Kugelblitz left vanilla.
+
+### Known gaps
+- Non-projectile fist/breath spells (Todeshauch, Windfaust, Sturmfaust, Eiswelle) use a
+  different damage path and aren't covered. Cast time / mana cost live in `USpellConfig`
+  (not touched).
+
 ## [0.1.0-alpha] — 2026-06-13
 
 First alpha. The per-spell damage-scaling mechanism works and is stable in-game.

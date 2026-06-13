@@ -1,58 +1,45 @@
 -- G1R Mage Balance — configuration
+-- =============================================================================
+-- Edit the Spells table below. One readable block per spell — that's all you ever
+-- touch. Runtime-only; reverts on game close. No game files are modified.
 --
--- Rebalances mage spell damage at runtime (no game files touched). When a player
--- spell projectile hits an enemy, the enemy's incoming-damage multiplier is
--- briefly scaled by that spell's factor, then restored — so only that hit is
--- affected. Per-spell factors live in SpellDamageByClass below; editing them is
--- all you ever need to do.
+-- Each spell block:
+--   class   = the spell's definition class name (without "Default__"). Per-level
+--             chargeable spells are covered automatically (_Lvl1/_Lvl2/_Lvl3).
+--             Discover a class name by casting the spell -> see "[SPELL] <name>"
+--             in UE4SS.log, or probe with the  mb_try <name>  console command.
+--   damage  = how to change damage. Two forms:
+--               • a NUMBER  = multiplier on vanilla base + per-circle values
+--                             (1.0 = unchanged). Easiest; scales uniformly.
+--               • a TABLE   = ABSOLUTE values: { base=, c2=, c4=, c6= }
+--                             (any omitted entry keeps vanilla). For precise
+--                             per-magic-circle control.
+--   fields  = OPTIONAL absolute overrides for non-damage stats (AoE area,
+--             duration, speed, stagger, ...). Field names come from  mb_fields.
+--   enabled = OPTIONAL false to skip this spell entirely.
 --
--- Balance intent (YouTuber DaddyKickem) — wired up per spell as class names are
--- discovered (see "Adding a spell" in README.md):
---   Blitz ......... "lachhaft"        -> strong buff (~2.5x)
---   Todeshauch .... very weak         -> buff (~2.0x)  [non-projectile, separate path TBD]
---   Feuerregen .... too weak          -> buff (~1.8x)
---   Eispfeil ...... endgame too weak  -> buff (~1.5x)
---   Feuerball ..... endgame too weak  -> buff (~1.5x)
---   Kugelblitz .... okay              -> leave ~1.0
---   Eiswelle / Windfaust / Sturmfaust -> fine, leave 1.0
+-- To leave a spell vanilla: damage = 1.0 and no fields (or just comment it out).
+-- =============================================================================
 
 return {
     ModName = "G1R Mage Balance",
-    Version = "0.1.0-alpha",
+    Version = "0.3.0-dev",
+    Enabled = true,
 
-    -- ======================================================================
-    -- MAIN SETTING — per-spell damage factors.
-    -- Key   = any substring of the spell's projectile-definition class name
-    --         (shown in UE4SS.log when you cast it: "SPELL <Name>ProjectileDefinition").
-    -- Value = damage multiplier for that spell (1.0 = vanilla / untouched).
-    -- To add a spell: cast it once, read the class name from the log, add a line.
-    -- ======================================================================
-    EnableSpellScaling = true,
-    SpellDamageByClass = {
-        FireBolt      = 1.0,  -- Feuerpfeil (Circle 1; fine in vanilla — set higher to taste)
-        BallLightning = 1.0,  -- Kugelblitz (DaddyKickem: okay)
-        -- Add once captured (cast the spell, copy its class-name substring):
-        -- Fireball   = 1.5,  -- Feuerball
-        -- IceArrow   = 1.5,  -- Eispfeil   (real class substring TBD)
-        -- Lightning  = 2.5,  -- Blitz      (real class substring TBD)
-        -- FireRain   = 1.8,  -- Feuerregen (real class substring TBD)
+    Spells = {
+        -- name           class (definition)                damage / fields
+        Feuerpfeil = { class = "FireBoltProjectileDefinition", damage = 1.0 },           -- Circle-1 starter; fine in vanilla
+        Feuerball  = { class = "FireBallProjectileDefinition", damage = 1.5 },           -- chargeable _Lvl1/2/3; endgame too weak
+        Kugelblitz = { class = "BallLightningDefinition",      damage = 1.0 },           -- okay per feedback
+        Feuerregen = { class = "FireRainDefinition",           damage = 2.5,             -- AoE, flat damage (no circle scaling)
+                       fields = { m_XOffset = 1600, m_YOffset = 1600 } },                -- bigger rain area (vanilla 800/800)
+        Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = 1.2 },           -- endgame too weak (turn OFF if running NoviceWaterMage)
+        -- Blitz    = { class = "???",                         damage = 2.5 },           -- "lachhaft" — capture its class first
+        -- Absolute-value example (instead of a factor):
+        -- Beispiel = { class = "SomeProjectileDefinition", damage = { base = 80, c2 = 95, c4 = 115, c6 = 150 } },
     },
 
-    -- ---- Diagnostics / dev ----------------------------------------------------
-    -- Dry run: resolve the target and read its DamageMultiplier but do NOT write
-    -- (useful to debug target resolution without changing damage). Default off.
-    ScaleDryRun = false,
-
-    -- DEV ONLY: [DBG] breadcrumbs logged right before each risky engine call, so a
-    -- hard C++ crash can be traced to the exact line (last [DBG] line = culprit).
-    -- Keep OFF for normal play; turn on only when diagnosing a crash.
-    DebugSteps = false,
-
-    -- Verbose capture logging (logs each spell's m_DamageBase when first cast —
-    -- this is how you discover a new spell's class name). Harmless to leave on.
-    Verbose = true,
-
-    -- Short class names probed by the mb_scan / mb_dumpfirst console commands.
-    ReconClasses = "SpellProjectileDefinition ProjectileDefinition USpellContainer",
-    DumpValues = true,
+    -- ---- diagnostics ----------------------------------------------------------
+    Verbose    = true,   -- log each spell's class + base damage on first cast ([SPELL] lines)
+    DebugSteps = false,  -- DEV: [DBG] breadcrumbs before risky calls (crash tracing)
 }
