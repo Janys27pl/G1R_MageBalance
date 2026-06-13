@@ -4,9 +4,10 @@ Rebalances **mage spell damage** (and other spell stats) at runtime. **No game f
 modified** — values are changed in memory at load and revert when you close the game.
 Everything is configured in one readable table: **one block per spell**.
 
-> **Status: working (dev, v0.3.0).** Covers projectile spells (incl. chargeable ones)
-> and rain/AoE spells whose definition exposes a damage map. Non-projectile fist/breath
-> spells (Todeshauch, Windfaust, Sturmfaust) are not covered yet — see [Limitations](#limitations).
+> **Status: working (dev, v0.3.0).** Balances projectile spells (incl. chargeable ones like
+> Fireball) and AoE/special spells whose definition exposes a damage map — **Fire Rain and
+> Death Breath included**. A couple of spells use a different damage path (see
+> [Limitations](#limitations)); planned work is tracked in [TODO.md](TODO.md).
 
 ---
 
@@ -43,12 +44,14 @@ Everything lives in **`Scripts/config.lua` → `Spells`**. One readable block pe
 
 ```lua
 Spells = {
-    Feuerpfeil = { class = "FireBoltProjectileDefinition", damage = 1.0 },          -- vanilla
-    Feuerball  = { class = "FireBallProjectileDefinition", damage = 1.5 },          -- chargeable; x1.5
-    Kugelblitz = { class = "BallLightningDefinition",      damage = 1.0 },
-    Feuerregen = { class = "FireRainDefinition",           damage = 2.5,            -- AoE, flat dmg
-                   fields = { m_XOffset = 1600, m_YOffset = 1600 } },               -- + bigger area
-    Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = 1.2 },
+    Feuerpfeil = { class = "FireBoltProjectileDefinition",    damage = 1.0 },         -- vanilla
+    Feuerball  = { class = "FireBallProjectileDefinition",    damage = 2.0 },         -- chargeable; x2
+    Kugelblitz = { class = "BallLightningDefinition",         damage = 1.0 },
+    Feuerregen = { class = "FireRainDefinition",              damage = 2.5,           -- AoE, flat dmg
+                   fields = { m_XOffset = 1600, m_YOffset = 1600 } },                 -- + bigger area
+    Eispfeil   = { class = "IceBoltProjectileDefinition",     damage = { base = 35, c2 = 40, c4 = 50, c6 = 65 } }, -- absolute (Firebolt parity)
+    Todeshauch = { class = "BreathOfDeathDefinition",         damage = 2.0 },         -- breath/AoE
+    Pyrokinese = { class = "PyrokinesisProjectileDefinition", damage = 2.5 },
 }
 ```
 
@@ -106,11 +109,13 @@ Require **ConsoleEnablerMod**.
 
 ## Limitations
 
-- Covers spells whose definition exposes `m_DamageBase` (projectiles, rain/AoE like
-  Feuerregen). **Non-projectile fist/breath spells** (Todeshauch, Windfaust, Sturmfaust,
-  Eiswelle) use a different damage path and are **not** handled yet.
-- **Cast time / mana cost** are not on the projectile definition — they live in a separate
-  `USpellConfig` object and are not changed by this mod.
+- Covers spells whose definition exposes `m_DamageBase` — projectiles, charge spells, and
+  AoE/breath spells like **Fire Rain** and **Death Breath**.
+- **Not yet covered:** **Lightning / Blitz** (a beam — its damage lives in a *GameplayEffect*,
+  not a projectile definition) and **Windfaust / Fist of Wind** (no damage definition found).
+  Tracked in [TODO.md](TODO.md).
+- **Cast time / mana cost** live in a separate `USpellConfig` object (not the damage
+  definition) and aren't changed yet — also on the to-do list.
 
 ## Building / dev notes
 
