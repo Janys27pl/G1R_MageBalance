@@ -33,7 +33,7 @@ return {
         Kugelblitz = { class = "BallLightningDefinition",      damage = 1.0 },           -- okay per feedback
         Feuerregen = { class = "FireRainDefinition",           damage = 2.5,             -- AoE, flat damage (no circle scaling)
                        fields = { m_XOffset = 1600, m_YOffset = 1600 } },                -- bigger rain area (vanilla 800/800)
-        Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = 1.2 },           -- endgame too weak (turn OFF if running NoviceWaterMage)
+        Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = { base = 35, c2 = 40, c4 = 50, c6 = 65 } }, -- Firebolt parity (vanilla 20/30/40/50)
         -- Blitz    = { class = "???",                         damage = 2.5 },           -- "lachhaft" — capture its class first
         -- Absolute-value example (instead of a factor):
         -- Beispiel = { class = "SomeProjectileDefinition", damage = { base = 80, c2 = 95, c4 = 115, c6 = 150 } },
