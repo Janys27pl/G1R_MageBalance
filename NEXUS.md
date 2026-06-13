@@ -43,6 +43,7 @@ Want different numbers? Edit [i]Scripts\config.lua[/i] — one readable block pe
 ## Shout outs
 [list]
 [*][b]DaddyKickem[/b] — for the detailed, spell-by-spell balance feedback that started this whole project.
+[*][b]NoviceWaterMage[/b] (mod & author) — for working out how Gothic 1 Remake stores spell damage; the CDO-editing technique this mod uses to scale damage builds on theirs.
 [*]The [b]Gothic 1 Remake modding community[/b] and the [b]UE4SS[/b] team.
 [*]Everyone who tests, reports, and helps tune the numbers — this is a community work in progress.
 [/list]
