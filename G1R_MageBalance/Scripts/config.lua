@@ -28,14 +28,15 @@ return {
 
     Spells = {
         -- name           class (definition)                damage / fields
-        Feuerpfeil = { class = "FireBoltProjectileDefinition", damage = 1.0 },           -- Circle-1 starter; fine in vanilla
-        Feuerball  = { class = "FireBallProjectileDefinition", damage = 2.0 },           -- chargeable _Lvl1/2/3; endgame too weak
+        Feuerpfeil = { class = "FireBoltProjectileDefinition", damage = { base = 30, c2 = 40, c4 = 50, c6 = 65 } }, -- Circle-1 nerf (35->30), rest vanilla
+        Feuerball  = { class = "FireBallProjectileDefinition", damage = 1.75 },          -- chargeable _Lvl1/2/3; +75% (was +100%)
         Kugelblitz = { class = "BallLightningDefinition",      damage = 1.0 },           -- okay per feedback
         Feuerregen = { class = "FireRainDefinition",           damage = 2.5,             -- AoE, flat damage (no circle scaling)
                        fields = { m_XOffset = 1600, m_YOffset = 1600 } },                -- bigger rain area (vanilla 800/800)
         Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = { base = 35, c2 = 40, c4 = 50, c6 = 65 } }, -- Firebolt parity (vanilla 20/30/40/50)
         Todeshauch = { class = "BreathOfDeathDefinition",      damage = 2.0 },           -- "total schwach" -> buff (breath/AoE)
         Pyrokinese = { class = "PyrokinesisProjectileDefinition", damage = 2.5 },        -- projectile
+        Feuersturm = { class = "StormOfFireDefinition",        damage = 1.2 },           -- Firestorm: 200->240 (must stay below Firerain's total)
         -- Blitz    = { class = "???",                         damage = 2.5 },           -- "lachhaft" — capture its class first
         -- Absolute-value example (instead of a factor):
         -- Beispiel = { class = "SomeProjectileDefinition", damage = { base = 80, c2 = 95, c4 = 115, c6 = 150 } },
