@@ -132,7 +132,9 @@ enables `[DBG]` breadcrumbs before each risky engine call (crash tracing).
 
 ## Credits
 
-This mod stands on other people's work — thank you:
+**Created and maintained by [tailwindtom](https://github.com/tailwindtom)** — versions 0.1–0.6 built solo.
+
+Built on and helped by:
 
 - **[DoctorKalle](https://www.nexusmods.com/gothic1remake/mods/178)** — author of
   **NoviceWaterMage**, who worked out how Gothic 1 Remake stores spell damage on the
