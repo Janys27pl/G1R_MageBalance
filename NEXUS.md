@@ -32,7 +32,7 @@ Want different numbers? Edit [i]Scripts\config.lua[/i] — one readable block pe
 [*][b]Runtime-only & save-safe[/b] — nothing on disk is touched; reverts on game close; never stacks.
 [*][b]Easy config[/b] — one block per spell; add or retune a spell in seconds.
 [/list]
-[b]Current buffs:[/b] Fire Rain (+150% & bigger area), Fireball (+100%, all charge levels), Ice Arrow (raised to Firebolt parity), Death Breath (+100%), Pyrokinesis (+150%). Firebolt and Ball Lightning are left at vanilla. More to come — see the to-do list.
+[b]Current buffs:[/b] Fire Rain (+150% & bigger area), Fireball (+75%, all charge levels), Fire Storm (denerfed after the 1.01 hotfix), Ice Arrow (raised to Firebolt parity), Death Breath (+100%), Pyrokinesis (+150%). Firebolt is slightly toned down at Circle 1 for early-game balance; Ball Lightning is left at vanilla. More to come — see the to-do list.
 
 ## Requirements
 [list]
@@ -72,7 +72,7 @@ Want different numbers? Edit [i]Scripts\config.lua[/i] — one readable block pe
 [*][b]Runtime-only & save-safe[/b] — nothing on disk is touched; reverts on game close; never stacks.
 [*][b]Easy config[/b] — one block per spell; add or retune a spell in seconds.
 [/list]
-[b]Current buffs:[/b] Fire Rain (+150% & bigger area), Fireball (+100%, all charge levels), Ice Arrow (raised to Firebolt parity), Death Breath (+100%), Pyrokinesis (+150%). Firebolt and Ball Lightning are left at vanilla. More to come.
+[b]Current buffs:[/b] Fire Rain (+150% & bigger area), Fireball (+75%, all charge levels), Fire Storm (denerfed after the 1.01 hotfix), Ice Arrow (raised to Firebolt parity), Death Breath (+100%), Pyrokinesis (+150%). Firebolt is slightly toned down at Circle 1 for early-game balance; Ball Lightning is left at vanilla. More to come.
 
 [size=5][b]Requirements[/b][/size]
 [list]

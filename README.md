@@ -4,7 +4,7 @@ Rebalances **mage spell damage** (and other spell stats) at runtime. **No game f
 modified** — values are changed in memory at load and revert when you close the game.
 Everything is configured in one readable table: **one block per spell**.
 
-> **Status: working (dev, v0.3.0).** Balances projectile spells (incl. chargeable ones like
+> **Status: working (v0.4.0).** Balances projectile spells (incl. chargeable ones like
 > Fireball) and AoE/special spells whose definition exposes a damage map — **Fire Rain and
 > Death Breath included**. A couple of spells use a different damage path (see
 > [Limitations](#limitations)); planned work is tracked in [TODO.md](TODO.md).

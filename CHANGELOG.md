@@ -2,6 +2,28 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.4.0] — 2026-06-14
+
+Balance pass driven by the first wave of player feedback (Nexus + Discord).
+
+### Added
+- **Fire Storm** (`StormOfFireDefinition`) is now balanced — denerfed after the 1.01
+  hotfix left it weak (+20%, 200 → 240), kept below Fire Rain so chapter progression holds.
+- **Pyrokinesis** (`PyrokinesisProjectileDefinition`) now buffed (×2.5) — was dealing
+  near-zero damage.
+- **Death Breath** (`BreathOfDeathDefinition`) buffed (×2.0).
+
+### Changed (balance)
+- **Firebolt** nerfed at **Circle 1 only** (35 → 30); Circles 2/4/6 stay vanilla
+  (40/50/65). Addresses "Firebolt outshines everything early".
+- **Fireball** retuned from ×2.0 to **×1.75** (was overtuned per feedback).
+- **Ice Arrow** kept at Firebolt parity (35/40/50/65).
+- **Fire Rain** ×2.5 + larger area; **Ball Lightning** left vanilla.
+
+### Notes
+- Community feedback collected and triaged in `FEEDBACK.md` (what's feasible vs not).
+- Next up: mana cost / cast time (`USpellConfig`) and stun/knockback tuning.
+
 ## [0.3.0-dev] — 2026-06-13
 
 Reworked the whole damage approach and the config schema.
