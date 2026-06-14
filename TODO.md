@@ -24,7 +24,7 @@ Blitz is a **ray** spell (`ALightningRayVisual`), **not** a projectile, so it ha
   source unknown (probably a GameplayEffect like Blitz).
 - **Eiswelle / Eisblock / Sturmfaust / Untote vernichten / Feuersturm** — these DO have
   a definition with `m_DamageBase` (verified), so they're balanceable any time. Left
-  vanilla because DaddyKickem rated them "fine/okay"; add to `config.Spells` when wanted.
+  vanilla because DannyKickem rated them "fine/okay"; add to `config.Spells` when wanted.
 
 ---
 
