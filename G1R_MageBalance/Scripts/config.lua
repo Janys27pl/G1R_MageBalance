@@ -29,7 +29,7 @@
 
 return {
     ModName = "G1R Mage Balance",
-    Version = "0.7.1",
+    Version = "0.7.2",
     Enabled = true,
 
     Spells = {
@@ -44,7 +44,7 @@ return {
         Feuerregen = { class = "FireRainDefinition",           damage = 2.5,             -- AoE, flat damage (no circle scaling)
                        fields = { m_XOffset = 1600, m_YOffset = 1600 },                  -- bigger rain area (vanilla 800/800)
                        spellConfig = "FireRainSpellConfig", mana = { 30 } },             -- mana 20 -> 30 (OP AoE-DoT, conservative bump)
-        Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = { base = 35, c2 = 40, c4 = 50, c6 = 65 } }, -- Firebolt parity (vanilla 20/30/40/50)
+        Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = { base = 25, c2 = 40, c4 = 45, c6 = 55 } }, -- below Firebolt (it also freezes / beats fire-resistant foes), BUT = Firebolt at circle 2 (ch.2) so the fire-resistant Orc Cemetery stays doable; vanilla 20/30/40/50
         Todeshauch = { class = "BreathOfDeathDefinition",      damage = 2.0,             -- 300 dmg (vanilla 150)
                        spellConfig = "BreathOfDeathSpellConfig", mana = { 15 }, cast = { 0.25 } }, -- own niche: cheap+fast cone nuke (not a Firestorm clone). mana 5->15, cast 0.5->0.25
         Pyrokinese = { class = "PyrokinesisProjectileDefinition", damage = 2.5 },        -- projectile

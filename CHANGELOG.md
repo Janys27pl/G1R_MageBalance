@@ -2,6 +2,14 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.7.2] — 2026-06-14
+
+### Changed (balance)
+- **Ice Arrow** pulled back below Firebolt: `35/40/50/65` → **`25/40/45/55`**. Full parity made
+  Firebolt redundant (Ice Arrow also freezes and is the pick vs fire-resistant enemies). It now
+  does a little less than Firebolt — **except at circle 2 (chapter 2)**, where it stays equal, so
+  the fire-resistant **Orc Cemetery** stays manageable. Restores the meaningful fire-vs-ice choice.
+
 ## [0.7.1] — 2026-06-14
 
 Balance patch from the first big wave of v0.6/v0.7 player feedback.
