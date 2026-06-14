@@ -2,6 +2,15 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.7.3] — 2026-06-14
+
+### Changed (balance)
+- **Fist of Wind — reliable knockdown.** Super-armor damage 200 → **1000**, so it now
+  staggers/knocks down even high-super-armor enemies like orcs. Fist of Wind's strength is
+  crowd control, not damage — this makes it a real survival tool (especially the fire-resistant
+  Orc Cemetery in chapter 2). Tell me if anything still resists it (I'll raise it) or if it
+  knocks down things it shouldn't late-game (I'll dial it back).
+
 ## [0.7.2] — 2026-06-14
 
 ### Changed (balance)
