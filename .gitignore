@@ -7,6 +7,9 @@ CXXHeaderDump/
 *.usmap
 *.hpp
 
+# Private store-listing / marketing draft (kept local, not public)
+NEXUS.md
+
 # OS / editor cruft
 Thumbs.db
 desktop.ini
