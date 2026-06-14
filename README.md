@@ -4,7 +4,7 @@ Rebalances **mage spell damage** (and other spell stats) at runtime. **No game f
 modified** — values are changed in memory at load and revert when you close the game.
 Everything is configured in one readable table: **one block per spell**.
 
-> **Status: working (v0.4.0).** Balances projectile spells (incl. chargeable ones like
+> **Status: working (v0.5.0).** Balances projectile spells (incl. chargeable ones like
 > Fireball) and AoE/special spells whose definition exposes a damage map — **Fire Rain and
 > Death Breath included**. A couple of spells use a different damage path (see
 > [Limitations](#limitations)); planned work is tracked in [TODO.md](TODO.md).
@@ -103,19 +103,20 @@ Require **ConsoleEnablerMod**.
 | command | effect |
 |---|---|
 | `mb_status` | dump every configured spell's current base + per-circle damage |
+| `mb_scanall` | probe **all** known spell definitions (even ones you don't own) and log their damage |
 | `mb_apply` | re-apply the config now |
 | `mb_try <name>` | safely probe whether `Default__<name>…` definitions exist |
 | `mb_fields <name>` | list a definition's properties (to find tunable fields) |
 
 ## Limitations
 
-- Covers spells whose definition exposes `m_DamageBase` — projectiles, charge spells, and
-  AoE/breath spells like **Fire Rain** and **Death Breath**.
-- **Not yet covered:** **Lightning / Blitz** (a beam — its damage lives in a *GameplayEffect*,
-  not a projectile definition) and **Windfaust / Fist of Wind** (no damage definition found).
-  Tracked in [TODO.md](TODO.md).
+- Covers spells whose definition exposes `m_DamageBase` — projectiles, charge spells,
+  AoE/breath spells (Fire Rain, Death Breath), the beam spell **Chain Lightning**, the
+  **wind** spells (Fist of Wind), **Uriziel** and **Destroy Undead**. Use `mb_scanall`
+  to list every known spell definition and its current values.
 - **Cast time / mana cost** live in a separate `USpellConfig` object (not the damage
-  definition) and aren't changed yet — also on the to-do list.
+  definition) and aren't changed yet — on the [to-do list](TODO.md).
+- **Stun / knockback** (`m_SuperArmorDamageBase`) is readable but not tuned yet.
 
 ## Building / dev notes
 

@@ -2,6 +2,42 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.5.0] — 2026-06-14
+
+Big coverage update: four more spells, including two that were thought impossible.
+
+### Added
+- **Chain Lightning (Blitz)** — `LightningRayDefinition` 10/25 → **60/90**. Previously
+  assumed un-editable (a "ray" whose damage lives in a GameplayEffect); turns out the
+  definition *does* carry the damage and editing it scales the in-game value 1:1
+  (**cast-verified**: a 3× test value one-shot a normal enemy). No longer deferred.
+- **Uriziel** — `UrizielWaveOfDeathVisualDefinition` 90 → **200** (6th-circle finale).
+- **Fist of Wind (Windfaust)** — `WindFistDefinition` ×2.0 (20/30/40/50 → 40/60/80/100).
+  This spell *does* have a damage definition (an earlier note said otherwise).
+- **Destroy Undead (Untote vernichten)** — `DeathToTheUndeadDefinition` 500 → **999**
+  (Gothic-2-style).
+- **`mb_scanall`** console command — probes every known spell definition in one go
+  (names harvested from the CXX header dump) and logs base + per-circle + super-armor.
+  The `Default__` CDO exists even for spells you don't own, so it surfaces vanilla
+  values for every spell at once. This is how the four spells above were found.
+
+### Changed
+- `def_variants` now also tries `_Base / _WithParalysis / _WithoutParalysis` (so Chain
+  Lightning, which has no `_LvlN` variants, is covered by one config entry) and `_Lvl4`.
+  Enemy `_Orc` variants are intentionally skipped.
+
+### Testing status (honest)
+- **Cast-verified:** Chain Lightning (and the previously shipped spells).
+- **Written & very likely active, but not cast-tested yet:** Uriziel, Destroy Undead,
+  Fist of Wind — these have the *same* structure as Chain Lightning (a damage definition
+  plus a damage GameplayEffect), and Chain Lightning proved the definition wins. Community
+  verification welcome. Note: Destroy Undead's felt damage is still dampened by undead
+  resistance.
+
+### Docs
+- Added `FEEDBACK.md` (community feedback from Nexus + Discord, triaged by feasibility).
+- Repo cleanup; `TODO.md` marks Chain Lightning as solved.
+
 ## [0.4.0] — 2026-06-14
 
 Balance pass driven by the first wave of player feedback (Nexus + Discord).
