@@ -28,15 +28,14 @@ three player CDOs (the `_Orc` enemy variants are intentionally skipped).
 
 ## Ideas / wishlist
 
-### ⏩ Faster cast/charge animation at higher magic circles
-Reward progression: charging spells (Feuerball, Kugelblitz, …) should charge/cast faster
-as the mage's circle rises.
-- Cast time lives in **`USpellConfig.m_SpellLevels`** → `FSpellLevelRange.CastTime`
-  (also `CastManaCost`) — a **separate object per spell**, not the projectile definition.
-- Charge/cast animation speed: anim-rate scale on the magic ability
-  (`UGameplayAbilityMagicBase` / cast montage play rate).
-- **Difficulty: medium.** Find each spell's `USpellConfig` CDO and set per-level
-  `CastTime`, and/or the montage rate. Same technique (StaticFindObject + field set).
+### ✅ Cast time + mana cost — DONE (v0.6 dev)
+Both are editable via the new `spellConfig` / `cast` / `mana` config keys (writes the
+spell's `USpellConfig.m_SpellLevels[].CastTime / .CastManaCost`). Verified in-game.
+- **Still open:** the *charge/hold* duration of chargeable spells (Feuerball, Kugelblitz)
+  — the `CastTime` field is small for everything, so the "endless cast" feeling is the
+  charge-up, which lives elsewhere (likely the ability's montage play rate /
+  `UGameplayAbilityMagicBase`, or a charge-duration field). Not located yet.
+- Idea: scale cast/mana *per magic circle* (we only do per spell-level today).
 
 ### 💡 Light (Licht) — novice tier + available early
 Make `UItAr_Rune_Light` learnable/castable at **novice** tier and buyable from chapter 1.
