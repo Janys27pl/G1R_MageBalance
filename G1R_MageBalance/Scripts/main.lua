@@ -304,6 +304,75 @@ pcall(RegisterConsoleCommandHandler, "mb_status", function(_, _, ar)
     return true
 end)
 
+-- =============================================================================
+-- mb_scanall : one-shot probe of EVERY known player damage-spell definition.
+-- Class names were harvested from the CXX header dump (all classes deriving from
+-- USpellProjectileDefinition / UWindProjectile_Base). The Default__ CDO exists in
+-- memory whether or not you own the rune, so this reads vanilla damage for spells
+-- you don't have yet (Uriziel, the wind runes, Chain Lightning, …).
+-- Crash-safe: every probe + read is pcall'd; missing CDOs are skipped; damage maps
+-- are read via the same safe path as mb_status (never touches a map key). Pure
+-- read-only — changes nothing.
+-- =============================================================================
+local MB_SCAN = {
+    -- { friendly label, definition object name (no "U" prefix, no "Default__") }
+    { "Firebolt",        "FireBoltProjectileDefinition" },
+    { "Fireball L1",     "FireBallProjectileDefinition_Lvl1" },
+    { "Fireball L2",     "FireBallProjectileDefinition_Lvl2" },
+    { "Fireball L3",     "FireBallProjectileDefinition_Lvl3" },
+    { "BallLightning B", "BallLightningDefinition_Base" },
+    { "BallLightning L1","BallLightningDefinition_Lvl1" },
+    { "BallLightning L2","BallLightningDefinition_Lvl2" },
+    { "BallLightning L3","BallLightningDefinition_Lvl3" },
+    { "BallLightning L4","BallLightningDefinition_Lvl4" },
+    { "Icebolt",         "IceBoltProjectileDefinition" },
+    { "Iceblock",        "IceBlockProjectileDefinition" },
+    { "IceWave",         "IceWaveProjectileDefinition" },
+    { "FireRain",        "FireRainDefinition" },
+    { "StormOfFire",     "StormOfFireDefinition" },
+    { "DestroyUndead",   "DeathToTheUndeadDefinition" },
+    { "Pyrokinesis",     "PyrokinesisProjectileDefinition" },
+    { "Pyrokinesis Base","PyrokinesisProjectileDefinitionBase" },
+    { "BreathOfDeath",   "BreathOfDeathDefinition" },
+    { "StormFist",       "StormFistDefinition" },
+    { "WindFist",        "WindFistDefinition" },
+    { "Uriziel",         "UrizielWaveOfDeathVisualDefinition" },
+    { "ChainLtg Base",   "LightningRayDefinition_Base" },
+    { "ChainLtg +Para",  "LightningRayDefinition_WithParalysis" },
+    { "ChainLtg -Para",  "LightningRayDefinition_WithoutParalysis" },
+}
+local function read_scalar(cdo, field)
+    local v; if pcall(function() v = cdo[field] end) and type(v) == "number" then return v end
+    return nil
+end
+local function scan_all()
+    log.info("==== mb_scanall: probing all known spell definitions ====")
+    local found, missing = 0, 0
+    for _, row in ipairs(MB_SCAN) do
+        local label, name = row[1], row[2]
+        local cdo = cdo_for(name)
+        if valid(cdo) then
+            found = found + 1
+            local b, bk, c = read_damage(cdo)
+            local sa = read_scalar(cdo, "m_SuperArmorDamageBase")
+            local hasDmg = (b ~= nil) or (c[1] ~= nil)
+            log.info(string.format("[SCAN] %-17s %-38s base=%-6s c2/4/6=%s/%s/%s  superArmor=%-6s %s",
+                label, name, tostring(b),
+                tostring(c[1]), tostring(c[2]), tostring(c[3]), tostring(sa),
+                hasDmg and "" or "(no damage in def -> likely GameplayEffect)"))
+        else
+            missing = missing + 1
+            log.info(string.format("[SCAN] %-17s %-38s (no CDO loaded)", label, name))
+        end
+    end
+    log.info(string.format("==== mb_scanall done: %d found, %d not loaded ====", found, missing))
+end
+pcall(RegisterConsoleCommandHandler, "mb_scanall", function(_, _, ar)
+    on_game_thread(function() pcall(scan_all) end)
+    if ar then pcall(function() ar:Log("[Mage Balance] scanall -> UE4SS.log") end) end
+    return true
+end)
+
 -- mb_try <NameBase> : safely probe StaticFindObject for a spell definition by name
 -- (tries common suffix variants) and dump its damage if found. No hot hook → no
 -- crash. Use to locate non-projectile-cast spells, e.g.  mb_try FireRain
@@ -396,4 +465,4 @@ pcall(RegisterConsoleCommandHandler, "mb_fields", function(a, b, ar)
     return true
 end)
 
-log.info("ready. Console: mb_apply, mb_status, mb_try <name>, mb_fields <name>. Cast -> [SPELL].")
+log.info("ready. Console: mb_apply, mb_status, mb_scanall, mb_try <name>, mb_fields <name>. Cast -> [SPELL].")
