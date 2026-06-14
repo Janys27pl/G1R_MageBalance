@@ -2,6 +2,19 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.7.1] — 2026-06-14
+
+Balance patch from the first big wave of v0.6/v0.7 player feedback.
+
+### Changed (balance)
+- **Firebolt mana 1 → 2** — it was by far the most mana-efficient spell (~50 dmg/mana),
+  which made everything else redundant for single targets. The most-requested change.
+- **Breath of Death** repositioned: mana 40 → **15**, cast 0.5 → **0.25s** — a cheap, fast
+  cone nuke with its own identity, instead of a worse Fire Storm clone.
+- **Uriziel 300 → 250** — still the strongest spell, but less of an auto-win on final fights.
+- **Destroy Undead** keeps 999 dmg but cast 0.5 → **1.2s** — now needs a setup instead of
+  run-in-and-instakill (999 trivialized the Sleeper Temple).
+
 ## [0.7.0] — 2026-06-14
 
 ### Added

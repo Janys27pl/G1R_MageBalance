@@ -9,7 +9,7 @@ number otherwise.
 
 | Circle | Spell | Damage (vanilla → mod) | Mana (v → mod) | Cast / Charge (v → mod) | What changed |
 |:--:|---|---|---|---|---|
-| 1 | **Firebolt** | 35/40/50/65 → **30**/40/50/65 | `=` 1 | `=` 0.1s | 🔽 1st-circle toned down (too strong early) |
+| 1 | **Firebolt** | 35/40/50/65 → **30**/40/50/65 | 1 → **2** | `=` 0.1s | 🔽 1st-circle toned down + mana doubled (was by far the most efficient spell) |
 | 1 | **Ice Arrow** | 20/30/40/50 → **35/40/50/65** | `=` 1 | `=` 0.1s | 🔼 raised to Firebolt parity |
 | 2 | **Fist of Wind** | 20/30/40/50 → **40/60/80/100** | `=` 2 | `=` instant | 🔼 ×2 damage (CC spell) |
 | 3 | **Fireball** *(charge)* | 60/90/120 → **105/158/210** | ×1.25 | **×0.7 (faster)** | 🔼 +75% dmg · ⚙️ faster charge · 🔽 +mana |
@@ -21,9 +21,9 @@ number otherwise.
 | 4 | **Chain Lightning** | 10/25 → **60/90** | `=` 5 | `=` 0.5s | 🔼 fixed — was laughably weak |
 | 5 | **Fire Rain** | 45 → **112.5** | 20 → **30** | `=` 0.1s | 🔼 ×2.5 dmg · ⚙️ bigger area (800 → 1600) · 🔽 +mana |
 | 5 | **Ice Wave** | `=` 120/150 | 8 → **20** | `=` 0.2s | 🔽 mana fixed (stunlock was too cheap) |
-| 5 | **Destroy Undead** | 500 → **999** | 25 → **30** | `=` 0.5s | 🔼 Gothic-2-style 999 |
-| 6 | **Uriziel** | 90 → **300** | `=` 40 | `=` 0.3s | 🔼 endgame finale now hits hardest |
-| 6 | **Breath of Death** | 150 → **300** | 5 → **40** | `=` 0.5s | 🔼 ×2 dmg · 🔽 now appropriately expensive |
+| 5 | **Destroy Undead** | 500 → **999** | 25 → **30** | 0.5 → **1.2s** | 🔼 Gothic-2-style 999 · ⚙️ slower cast so it needs a setup (no run-in-instakill) |
+| 6 | **Uriziel** | 90 → **250** | `=` 40 | `=` 0.3s | 🔼 endgame finale, strongest spell (dialed back from 300) |
+| 6 | **Breath of Death** | 150 → **300** | 5 → **15** | 0.5 → **0.25s** | 🔼 ×2 dmg · ⚙️ cheap + fast cone nuke (own niche vs Fire Storm) |
 
 ### Notes
 

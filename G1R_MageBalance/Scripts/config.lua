@@ -29,12 +29,13 @@
 
 return {
     ModName = "G1R Mage Balance",
-    Version = "0.7.0",
+    Version = "0.7.1",
     Enabled = true,
 
     Spells = {
         -- name           class (definition)                damage / fields
-        Feuerpfeil = { class = "FireBoltProjectileDefinition", damage = { base = 30, c2 = 40, c4 = 50, c6 = 65 } }, -- Circle-1 nerf (35->30), rest vanilla
+        Feuerpfeil = { class = "FireBoltProjectileDefinition", damage = { base = 30, c2 = 40, c4 = 50, c6 = 65 }, -- C1 nerf (35->30), rest vanilla
+                       spellConfig = "ProjectileSpellConfig_FireBolt", mana = { 2 } },    -- mana 1 -> 2: halves its mana-efficiency (was by far the most efficient spell -> Firebolt-spam fix)
         Feuerball  = { class = "FireBallProjectileDefinition", damage = 1.75,            -- chargeable _Lvl1/2/3; +75%
                        spellConfig = "ProjectileSpellConfig_FireBall", cast = 0.7, mana = 1.25 }, -- charge x0.7, mana x1.25 (vanilla 5/2/2)
         Kugelblitz = { class = "BallLightningDefinition",      damage = 1.0,             -- damage okay per feedback
@@ -44,17 +45,18 @@ return {
                        fields = { m_XOffset = 1600, m_YOffset = 1600 },                  -- bigger rain area (vanilla 800/800)
                        spellConfig = "FireRainSpellConfig", mana = { 30 } },             -- mana 20 -> 30 (OP AoE-DoT, conservative bump)
         Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = { base = 35, c2 = 40, c4 = 50, c6 = 65 } }, -- Firebolt parity (vanilla 20/30/40/50)
-        Todeshauch = { class = "BreathOfDeathDefinition",      damage = 2.0,             -- 300 dmg (vanilla 150); C6 must feel devastating
-                       spellConfig = "BreathOfDeathSpellConfig", mana = { 40 } },        -- mana 5 -> 40 (krass aber teuer; conservative)
+        Todeshauch = { class = "BreathOfDeathDefinition",      damage = 2.0,             -- 300 dmg (vanilla 150)
+                       spellConfig = "BreathOfDeathSpellConfig", mana = { 15 }, cast = { 0.25 } }, -- own niche: cheap+fast cone nuke (not a Firestorm clone). mana 5->15, cast 0.5->0.25
         Pyrokinese = { class = "PyrokinesisProjectileDefinition", damage = 2.5 },        -- projectile
         Feuersturm = { class = "StormOfFireDefinition",        damage = 1.2,             -- Firestorm: 200->240 (stays below Firerain's total output)
                        spellConfig = "StormOfFireSpellConfig", mana = { 30 } },          -- mana 35 -> 30 (slight relief)
-        Uriziel    = { class = "UrizielWaveOfDeathVisualDefinition", damage = { base = 300 }, -- 6th-circle finale (vanilla 90); now tops the chart
-                       spellConfig = "UrizielWaveOfDeathSpellConfig", mana = { 40 } },   -- mana 40 (krass aber teuer; same tier as Death Breath)
+        Uriziel    = { class = "UrizielWaveOfDeathVisualDefinition", damage = { base = 250 }, -- 6th-circle finale (vanilla 90); tops the chart but not insta-win (was 300)
+                       spellConfig = "UrizielWaveOfDeathSpellConfig", mana = { 40 } },   -- mana 40 (krass aber teuer)
         Blitz      = { class = "LightningRayDefinition",        damage = { base = 60, c2 = 90 } }, -- Chain Lightning C4 (vanilla 10/25 "lachhaft"); hits _Base/_WithParalysis/_WithoutParalysis. CONFIRMED: def-write scales in-game damage 1:1
         Windfaust  = { class = "WindFistDefinition",            damage = 2.0 },           -- Fist of Wind: 20/30/40/50 -> 40/60/80/100 (CC spell, modest buff)
         UntoteVernichten = { class = "DeathToTheUndeadDefinition", damage = { base = 999 }, -- Destroy Undead, Gothic-2-style (vanilla 500 flat)
-                       spellConfig = "DeathToTheUndeadSpellConfig", mana = { 30 } },     -- mana 25 -> 30
+                       spellConfig = "DeathToTheUndeadSpellConfig", mana = { 30 },       -- mana 25 -> 30
+                       cast = { 1.2 } },                                                 -- cast 0.5 -> 1.2: needs a setup, no more run-in-instakill (feedback)
 
         -- Mana nerfs (damage left VANILLA on purpose) — feedback: these two are far too cheap:
         Sturmfaust = { class = "StormFistDefinition",         damage = 1.0,
