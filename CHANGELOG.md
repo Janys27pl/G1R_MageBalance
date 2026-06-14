@@ -2,6 +2,33 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.6.0] — 2026-06-14
+
+New levers (mana, cast/charge time, projectile speed) plus a chapter-progression pass.
+Full before/after in [BALANCE.md](BALANCE.md).
+
+### Added
+- **Mana cost editing** — per-spell `mana` (factor or absolute per level), writing the
+  spell's `USpellConfig.m_SpellLevels[].CastManaCost`.
+- **Cast / charge time editing** — per-spell `cast`. For charge spells (Fireball, Ball
+  Lightning) this *is* the per-stage charge time, so you can make them charge faster.
+- **Projectile speed** via `fields = { m_Speed = … }`.
+- **`mb_spellcfg`** console command (cast time + mana per spell level) and **speed** added
+  to `mb_scanall`.
+- **BALANCE.md** — a complete vanilla → mod table (damage / mana / cast / speed).
+
+### Balance
+- **Endgame tops the chart:** Uriziel 90 → **300**, Breath of Death 150 → **300**.
+- **Mana pass (conservative):** Storm Fist 3 → 15, Ice Wave 8 → 20, Fire Rain 20 → 30,
+  Breath of Death 5 → 40, Uriziel 40, Destroy Undead 25 → 30, Storm of Fire 35 → 30;
+  Fireball & Ball Lightning mana ×1.25. Firebolt / Ice Arrow left cheap on purpose.
+- **Charge & speed:** Fireball & Ball Lightning charge ×0.7 (faster); Ball Lightning
+  projectile speed 300-450 → **800**.
+
+### Notes
+- Mana values are tuned by feel (the in-game mana economy isn't fully mapped yet) and lean
+  conservative; expect tweaks from feedback.
+
 ## [0.5.0] — 2026-06-14
 
 Big coverage update: four more spells, including two that were thought impossible.

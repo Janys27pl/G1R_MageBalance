@@ -29,28 +29,28 @@
 
 return {
     ModName = "G1R Mage Balance",
-    Version = "0.5.0",
+    Version = "0.6.0",
     Enabled = true,
 
     Spells = {
         -- name           class (definition)                damage / fields
         Feuerpfeil = { class = "FireBoltProjectileDefinition", damage = { base = 30, c2 = 40, c4 = 50, c6 = 65 } }, -- Circle-1 nerf (35->30), rest vanilla
         Feuerball  = { class = "FireBallProjectileDefinition", damage = 1.75,            -- chargeable _Lvl1/2/3; +75%
-                       spellConfig = "ProjectileSpellConfig_FireBall", cast = 0.7, mana = 1.5 }, -- charge x0.7, mana x1.5 (vanilla 5/2/2)
+                       spellConfig = "ProjectileSpellConfig_FireBall", cast = 0.7, mana = 1.25 }, -- charge x0.7, mana x1.25 (vanilla 5/2/2)
         Kugelblitz = { class = "BallLightningDefinition",      damage = 1.0,             -- damage okay per feedback
                        fields = { m_Speed = 800 },                                       -- faster orb (vanilla 300-450, was sluggish)
-                       spellConfig = "ProjectileSpellConfig_BallLightning", cast = 0.7, mana = 1.5 }, -- charge x0.7, mana x1.5 (strong now: faster + zippier)
+                       spellConfig = "ProjectileSpellConfig_BallLightning", cast = 0.7, mana = 1.25 }, -- charge x0.7, mana x1.25 (strong now: faster + zippier)
         Feuerregen = { class = "FireRainDefinition",           damage = 2.5,             -- AoE, flat damage (no circle scaling)
                        fields = { m_XOffset = 1600, m_YOffset = 1600 },                  -- bigger rain area (vanilla 800/800)
-                       spellConfig = "FireRainSpellConfig", mana = { 40 } },             -- mana 20 -> 40 (OP AoE-DoT, must cost more)
+                       spellConfig = "FireRainSpellConfig", mana = { 30 } },             -- mana 20 -> 30 (OP AoE-DoT, conservative bump)
         Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = { base = 35, c2 = 40, c4 = 50, c6 = 65 } }, -- Firebolt parity (vanilla 20/30/40/50)
         Todeshauch = { class = "BreathOfDeathDefinition",      damage = 2.0,             -- 300 dmg (vanilla 150); C6 must feel devastating
-                       spellConfig = "BreathOfDeathSpellConfig", mana = { 50 } },        -- mana 5 -> 50 (krass aber teuer)
+                       spellConfig = "BreathOfDeathSpellConfig", mana = { 40 } },        -- mana 5 -> 40 (krass aber teuer; conservative)
         Pyrokinese = { class = "PyrokinesisProjectileDefinition", damage = 2.5 },        -- projectile
         Feuersturm = { class = "StormOfFireDefinition",        damage = 1.2,             -- Firestorm: 200->240 (stays below Firerain's total output)
                        spellConfig = "StormOfFireSpellConfig", mana = { 30 } },          -- mana 35 -> 30 (slight relief)
         Uriziel    = { class = "UrizielWaveOfDeathVisualDefinition", damage = { base = 300 }, -- 6th-circle finale (vanilla 90); now tops the chart
-                       spellConfig = "UrizielWaveOfDeathSpellConfig", mana = { 50 } },   -- mana 40 -> 50 (krass aber teuer)
+                       spellConfig = "UrizielWaveOfDeathSpellConfig", mana = { 40 } },   -- mana 40 (krass aber teuer; same tier as Death Breath)
         Blitz      = { class = "LightningRayDefinition",        damage = { base = 60, c2 = 90 } }, -- Chain Lightning C4 (vanilla 10/25 "lachhaft"); hits _Base/_WithParalysis/_WithoutParalysis. CONFIRMED: def-write scales in-game damage 1:1
         Windfaust  = { class = "WindFistDefinition",            damage = 2.0 },           -- Fist of Wind: 20/30/40/50 -> 40/60/80/100 (CC spell, modest buff)
         UntoteVernichten = { class = "DeathToTheUndeadDefinition", damage = { base = 999 }, -- Destroy Undead, Gothic-2-style (vanilla 500 flat)

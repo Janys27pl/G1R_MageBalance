@@ -4,7 +4,9 @@ Rebalances **mage spell damage** (and other spell stats) at runtime. **No game f
 modified** — values are changed in memory at load and revert when you close the game.
 Everything is configured in one readable table: **one block per spell**.
 
-> **Status: working (v0.5.0).** Balances projectile spells (incl. chargeable ones like
+> **Status: working (v0.6.0).** Tunes **damage, mana cost, cast/charge time and projectile
+> speed** per spell. See **[BALANCE.md](BALANCE.md)** for the complete vanilla → mod table.
+> Balances projectile spells (incl. chargeable ones like
 > Fireball) and AoE/special spells whose definition exposes a damage map — **Fire Rain and
 > Death Breath included**. A couple of spells use a different damage path (see
 > [Limitations](#limitations)); planned work is tracked in [TODO.md](TODO.md).
@@ -61,7 +63,10 @@ Each block:
 |---|---|
 | `class` | the spell's definition class name (without `Default__`). Per-charge-level variants `_Lvl1/_Lvl2/_Lvl3` are covered automatically. |
 | `damage` | **number** = multiplier on vanilla base + per-circle values (`1.0` = unchanged), **or table** `{ base=, c2=, c4=, c6= }` = absolute values (omitted entries keep vanilla). |
-| `fields` | *(optional)* absolute overrides for non-damage stats (field names from `mb_fields`). |
+| `fields` | *(optional)* absolute overrides for non-damage stats, e.g. `m_Speed` (projectile speed); field names from `mb_fields`. |
+| `spellConfig` | *(optional)* the spell's `USpellConfig` class name (from `mb_spellcfg`) — required only to change mana/cast time (a separate object). |
+| `mana` | *(optional)* change cast mana cost. **number** = factor, **table** = absolute per spell level `{ [1]=, [2]=, … }`. Needs `spellConfig`. |
+| `cast` | *(optional)* change cast / charge time (same two forms as `mana`). For charge spells this is the per-stage charge time. Needs `spellConfig`. |
 | `enabled` | *(optional)* `false` to skip the spell. |
 
 Leave a spell vanilla with `damage = 1.0` and no `fields` (or comment the block out).
@@ -103,7 +108,8 @@ Require **ConsoleEnablerMod**.
 | command | effect |
 |---|---|
 | `mb_status` | dump every configured spell's current base + per-circle damage |
-| `mb_scanall` | probe **all** known spell definitions (even ones you don't own) and log their damage |
+| `mb_scanall` | probe **all** known spell definitions (even ones you don't own): damage + super-armor + projectile speed |
+| `mb_spellcfg` | probe **mana cost + cast/charge time** for every spell (per spell level) |
 | `mb_apply` | re-apply the config now |
 | `mb_try <name>` | safely probe whether `Default__<name>…` definitions exist |
 | `mb_fields <name>` | list a definition's properties (to find tunable fields) |
