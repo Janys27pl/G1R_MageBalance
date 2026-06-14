@@ -29,14 +29,25 @@ Everything is configured in one readable table: **one block per spell**.
 
 ## Requirements
 
-- Gothic 1 Remake (UE4SS-moddable build)
-- **UE4SS 3.x** (tested on `3.0.1-326-g940af53`)
-- *(optional)* **ConsoleEnablerMod** — only for the `mb_*` console commands
+- Gothic 1 Remake
+- **UE4SS — latest *experimental* build, from GitHub:**
+  [UE4SS-RE/RE-UE4SS · experimental-latest](https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest)
+  > ⚠️ **Get UE4SS from GitHub, not from Nexus Mods.** The Nexus uploads are often
+  > outdated and cause crashes/incompatibilities on the current game build (UE 5.4.3).
+  > Always grab the newest experimental build from the GitHub link above.
+  > Developed/tested against `3.0.1-968-gcfe10f22`.
+- *(optional)* **ConsoleEnablerMod** (ships with UE4SS) — for the in-game `mb_*` commands.
 
 ## Installation
 
-Copy the `G1R_MageBalance` folder into `…\Gothic 1 Remake\G1R\Binaries\Win64\Mods\`.
-The empty `enabled.txt` activates it. Restart the game.
+1. Install **UE4SS** (latest experimental from GitHub) into
+   `…\Gothic 1 Remake\G1R\Binaries\Win64\` — so `dwmapi.dll` sits next to
+   `G1R-Win64-Shipping.exe` and you have a `Win64\ue4ss\` folder.
+2. Copy the `G1R_MageBalance` folder into **`…\Win64\ue4ss\Mods\`**. The included
+   `enabled.txt` activates it.
+   > Older UE4SS builds used `…\Win64\Mods\` (no `ue4ss\`). If that's your layout,
+   > put it there instead — use whichever folder your other mods already live in.
+3. Start the game. The log is at `…\Win64\ue4ss\UE4SS.log`.
 
 ---
 

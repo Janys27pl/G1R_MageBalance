@@ -49,6 +49,7 @@ Discover more: cast the spell → `[SPELL] <class>` in UE4SS.log, or `mb_try <na
   effect not yet visually confirmed; `m_Key/Key2` look like circle breakpoints (leave alone).
 
 ## Test loop
-Edit `G1R_MageBalance/Scripts/*` → copy to `…\Win64\Mods\G1R_MageBalance\Scripts\` → restart
-(hot-reload off) → cast / `mb_status` → read `…\Win64\UE4SS.log`. Install path:
+Edit `G1R_MageBalance/Scripts/*` → copy to `…\Win64\ue4ss\Mods\G1R_MageBalance\Scripts\` →
+restart (hot-reload off) → cast / `mb_status` → read `…\Win64\ue4ss\UE4SS.log`. Install path:
 `C:\Program Files (x86)\Steam\steamapps\common\Gothic 1 Remake\G1R\Binaries\Win64`.
+(Recent UE4SS uses the `ue4ss\` subfolder; older builds were flat: `…\Win64\Mods\` + `…\Win64\UE4SS.log`.)
