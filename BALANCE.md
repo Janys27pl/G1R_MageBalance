@@ -42,6 +42,20 @@ number otherwise.
 - Mana values are tuned conservatively and may still change with player feedback — a too-cheap
   spell is easier to fix than a too-expensive one.
 
+### Magic circle learning cost (LP)
+
+How many learning points a trainer charges to teach each circle.
+
+| Circle | 1 | 2 | 3 | 4 | 5 | 6 | **Total** |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| Vanilla | 10 | 15 | 20 | 25 | 30 | 35 | **135** |
+| **Mod** | **10** | **12** | **15** | **18** | **20** | **25** | **100** |
+
+Cheaper entry, circle 6 stays a real investment. Set `CircleCost` in config — a flat
+number, a per-circle table, or `nil` for vanilla. (Applies to all trainers.)
+
+---
+
 *Want different numbers? Everything here is one readable block per spell in
 [`Scripts/config.lua`](G1R_MageBalance/Scripts/config.lua). Use the `mb_scanall` and
 `mb_spellcfg` console commands to see every spell's live values.*

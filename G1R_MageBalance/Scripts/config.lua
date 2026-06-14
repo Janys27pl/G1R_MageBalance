@@ -29,7 +29,7 @@
 
 return {
     ModName = "G1R Mage Balance",
-    Version = "0.6.0",
+    Version = "0.7.0",
     Enabled = true,
 
     Spells = {

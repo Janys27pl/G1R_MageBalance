@@ -2,6 +2,20 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.7.0] — 2026-06-14
+
+### Added
+- **Magic-circle learning cost (LP).** New `CircleCost` config key sets how many learning
+  points each magic circle costs at trainers — a number (flat) or a per-circle table.
+  Default `{ 10, 12, 15, 18, 20, 25 }` = **100 LP** total (vanilla 135): cheaper start,
+  circle 6 stays a real milestone. This frees up points so a mage can fully invest in
+  magic without being starved on hard, while still not being able to also master str/dex.
+  Mechanism (`GE_Skill_Mage_Circle_*.SPCost`) found by **Janys27pl** ([#1](https://github.com/tailwindtom/G1R_MageBalance/pull/1)), extended here to per-circle.
+
+### Notes
+- `CircleCost` applies to all trainers; per-trainer pricing (e.g. a costlier Swamp Camp)
+  is on the to-do list.
+
 ## [0.6.0] — 2026-06-14
 
 New levers (mana, cast/charge time, projectile speed) plus a chapter-progression pass.

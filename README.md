@@ -71,6 +71,17 @@ Each block:
 
 Leave a spell vanilla with `damage = 1.0` and no `fields` (or comment the block out).
 
+### Magic circle learning cost
+
+A separate top-level key sets how many learning points (LP) each magic circle costs at
+trainers:
+
+```lua
+CircleCost = { 10, 12, 15, 18, 20, 25 },  -- per circle (progressive); 100 LP total
+-- CircleCost = 15,    -- or a flat number for all circles
+-- CircleCost = nil,   -- or vanilla (10/15/20/25/30/35 = 135)
+```
+
 ### Adding a spell
 
 1. Cast it once in-game. `UE4SS.log` logs `[SPELL] <Name>Definition base=…`.
