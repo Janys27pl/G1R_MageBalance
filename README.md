@@ -120,15 +120,31 @@ Require **ConsoleEnablerMod**.
   AoE/breath spells (Fire Rain, Death Breath), the beam spell **Chain Lightning**, the
   **wind** spells (Fist of Wind), **Uriziel** and **Destroy Undead**. Use `mb_scanall`
   to list every known spell definition and its current values.
-- **Cast time / mana cost** live in a separate `USpellConfig` object (not the damage
-  definition) and aren't changed yet — on the [to-do list](TODO.md).
 - **Stun / knockback** (`m_SuperArmorDamageBase`) is readable but not tuned yet.
+- **Per-trainer** magic-circle cost (e.g. a pricier Swamp Camp) isn't separated yet —
+  `CircleCost` applies to every trainer. See the [to-do list](TODO.md).
 
 ## Building / dev notes
 
 See [STATUS.md](STATUS.md) for the reverse-engineering notes, the data model, the
 hard-won UE4SS crash rules, and what's still open. `DebugSteps = true` in `config.lua`
 enables `[DBG]` breadcrumbs before each risky engine call (crash tracing).
+
+## Credits
+
+This mod stands on other people's work — thank you:
+
+- **[DoctorKalle](https://www.nexusmods.com/gothic1remake/mods/178)** — author of
+  **NoviceWaterMage**, who worked out how Gothic 1 Remake stores spell damage on the
+  definition CDOs. The runtime CDO-editing technique this mod is built on is theirs.
+- **[Janys27pl](https://github.com/Janys27pl)** — found the magic-circle learning-cost
+  mechanism (`GE_Skill_Mage_Circle_*.SPCost`) and contributed it ([#1](https://github.com/tailwindtom/G1R_MageBalance/pull/1)).
+- **[DannyKickem](https://www.youtube.com/@DannyKickem)** — the detailed, spell-by-spell
+  balance feedback that kicked off the whole project.
+- The **Gothic 1 Remake modding community** and the **UE4SS** team — and everyone who
+  tests, reports and helps tune the numbers.
+
+Contributions welcome — open an issue or PR.
 
 ## License
 
