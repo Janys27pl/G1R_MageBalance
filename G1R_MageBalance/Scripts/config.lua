@@ -16,6 +16,12 @@
 --                             per-magic-circle control.
 --   fields  = OPTIONAL absolute overrides for non-damage stats (AoE area,
 --             duration, speed, stagger, ...). Field names come from  mb_fields.
+--   spellConfig = OPTIONAL the spell's USpellConfig class name (see  mb_spellcfg).
+--             Only needed to change mana / cast time — those live in a SEPARATE
+--             object than damage. e.g. "StormFistSpellConfig".
+--   mana    = OPTIONAL change CAST MANA COST. NUMBER = factor on vanilla, or
+--             TABLE = absolute per spell level { [1]=, [2]=, ... }. Needs spellConfig.
+--   cast    = OPTIONAL change CAST TIME (same two forms as mana). Needs spellConfig.
 --   enabled = OPTIONAL false to skip this spell entirely.
 --
 -- To leave a spell vanilla: damage = 1.0 and no fields (or just comment it out).
@@ -30,7 +36,8 @@ return {
         -- name           class (definition)                damage / fields
         Feuerpfeil = { class = "FireBoltProjectileDefinition", damage = { base = 30, c2 = 40, c4 = 50, c6 = 65 } }, -- Circle-1 nerf (35->30), rest vanilla
         Feuerball  = { class = "FireBallProjectileDefinition", damage = 1.75 },          -- chargeable _Lvl1/2/3; +75% (was +100%)
-        Kugelblitz = { class = "BallLightningDefinition",      damage = 1.0 },           -- okay per feedback
+        Kugelblitz = { class = "BallLightningDefinition",      damage = 1.0,             -- damage okay per feedback
+                       fields = { m_Speed = 800 } },                                     -- faster orb (vanilla 300-450, was sluggish)
         Feuerregen = { class = "FireRainDefinition",           damage = 2.5,             -- AoE, flat damage (no circle scaling)
                        fields = { m_XOffset = 1600, m_YOffset = 1600 } },                -- bigger rain area (vanilla 800/800)
         Eispfeil   = { class = "IceBoltProjectileDefinition",  damage = { base = 35, c2 = 40, c4 = 50, c6 = 65 } }, -- Firebolt parity (vanilla 20/30/40/50)
@@ -42,11 +49,16 @@ return {
         Windfaust  = { class = "WindFistDefinition",            damage = 2.0 },           -- Fist of Wind: 20/30/40/50 -> 40/60/80/100 (CC spell, modest buff)
         UntoteVernichten = { class = "DeathToTheUndeadDefinition", damage = { base = 999 } }, -- Destroy Undead, Gothic-2-style (vanilla 500 flat)
 
-        -- Left vanilla on purpose (uncomment + tune if wanted; vanilla values from mb_scanall):
-        -- Sturmfaust = { class = "StormFistDefinition",        damage = 1.0 },           -- 120/160, SuperArmor 250 (stun); feedback: too strong for its mana
-        -- Eiswelle   = { class = "IceWaveProjectileDefinition", damage = 1.0 },          -- 120/150; feedback: stunlock too strong (stun, not base dmg)
-        -- Eisblock   = { class = "IceBlockProjectileDefinition", damage = 1.0 },         -- 60/80 freeze utility
-        -- Absolute-value example: Beispiel = { class = "X", damage = { base = 80, c2 = 95, c4 = 115, c6 = 150 } },
+        -- Mana nerfs (damage left VANILLA on purpose) — feedback: these two are far too cheap:
+        Sturmfaust = { class = "StormFistDefinition",         damage = 1.0,
+                       spellConfig = "StormFistSpellConfig",  mana = { 15 } },            -- mana 3 -> 15 (120/160 AoE + 250 stun for 3 mana was absurd)
+        Eiswelle   = { class = "IceWaveProjectileDefinition", damage = 1.0,
+                       spellConfig = "IceWaveSpellConfig",    mana = { 20 } },            -- mana 8 -> 20 (AoE stunlock)
+
+        -- Left fully vanilla (uncomment + tune if wanted; values from mb_scanall / mb_spellcfg):
+        -- Eisblock   = { class = "IceBlockProjectileDefinition", damage = 1.0 },         -- 60/80 freeze utility, mana 3
+        -- Damage absolute example:  Beispiel = { class = "X", damage = { base = 80, c2 = 95, c4 = 115, c6 = 150 } },
+        -- Mana/cast example:        X = { class="X", spellConfig="XSpellConfig", mana = { 12 }, cast = 0.5 },
     },
 
     -- ---- diagnostics ----------------------------------------------------------

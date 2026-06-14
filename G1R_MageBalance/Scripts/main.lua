@@ -201,15 +201,72 @@ local function apply_spell(class, damage, fields, label)
     return foundAny
 end
 
+-- ---- cast time + mana cost (a SEPARATE object: the spell's USpellConfig) -----
+-- Named by the block's `spellConfig` key. Values live in m_SpellLevels (array of
+-- FSpellLevelRange{ CastTime, CastManaCost, ManaCostSc }, one per spell level).
+-- We snapshot vanilla once, then write vanilla×factor (number) or absolute
+-- per-level values (table). Idempotent. Array elements written via e:get() —
+-- the same safe path as the per-circle damage progression.
+local function read_levels_raw(cfg)
+    local out = {}
+    pcall(function()
+        cfg.m_SpellLevels:ForEach(function(idx, e)
+            local t = {}
+            pcall(function() t.mana = e:get().CastManaCost end)
+            pcall(function() t.cast = e:get().CastTime end)
+            out[idx] = t
+        end)
+    end)
+    return out
+end
+-- spec: NUMBER = factor on vanilla; TABLE = absolute per level (spec[idx]).
+-- Returns nil to keep vanilla (factor 1.0, or no absolute entry for that level).
+local function level_target(spec, idx, vanillaVal)
+    if type(spec) == "table" then return spec[idx] end
+    local f = tonumber(spec) or 1.0
+    if f == 1.0 then return nil end
+    return (type(vanillaVal) == "number") and (vanillaVal * f) or nil
+end
+local function apply_spellcfg(spell, label)
+    local cfgName = spell.spellConfig
+    if not cfgName or (spell.mana == nil and spell.cast == nil) then return true end
+    local cdo = cdo_for(cfgName)
+    if not valid(cdo) then return false end
+    local key = full_name(cdo)
+    if vanilla[key] == nil then vanilla[key] = { levels = read_levels_raw(cdo) } end
+    local van = vanilla[key].levels or {}
+    pcall(function()
+        cdo.m_SpellLevels:ForEach(function(idx, e)
+            if spell.mana ~= nil then
+                local t = level_target(spell.mana, idx, van[idx] and van[idx].mana)
+                if type(t) == "number" then pcall(function() e:get().CastManaCost = t end) end
+            end
+            if spell.cast ~= nil then
+                local t = level_target(spell.cast, idx, van[idx] and van[idx].cast)
+                if type(t) == "number" then pcall(function() e:get().CastTime = t end) end
+            end
+        end)
+    end)
+    log.info(string.format("applied %-12s %-30s mana=%s cast=%s", tostring(label or ""), cfgName,
+        type(spell.mana) == "table" and "abs" or tostring(spell.mana),
+        type(spell.cast) == "table" and "abs" or tostring(spell.cast)))
+    return true
+end
+
 -- Apply every spell block in config.Spells. Returns true once all spells that
 -- actually change something have been found (so the startup retry loop can stop).
 local function apply_all()
     local pending = 0
     for niceName, spell in pairs(config.Spells or {}) do
-        if type(spell) == "table" and spell.class and spell.enabled ~= false then
-            local found = apply_spell(spell.class, spell.damage, spell.fields, niceName)
-            local changes = (spell.damage ~= nil and spell.damage ~= 1.0) or spell.fields ~= nil
-            if not found and changes then pending = pending + 1 end
+        if type(spell) == "table" and spell.enabled ~= false then
+            if spell.class then
+                local found = apply_spell(spell.class, spell.damage, spell.fields, niceName)
+                local changes = (spell.damage ~= nil and spell.damage ~= 1.0) or spell.fields ~= nil
+                if not found and changes then pending = pending + 1 end
+            end
+            if spell.spellConfig and (spell.mana ~= nil or spell.cast ~= nil) then
+                if not apply_spellcfg(spell, niceName) then pending = pending + 1 end
+            end
         end
     end
     return pending == 0
