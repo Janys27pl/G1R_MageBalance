@@ -38,7 +38,7 @@ return {
         Pyrokinese = { class = "PyrokinesisProjectileDefinition", damage = 2.5 },        -- projectile
         Feuersturm = { class = "StormOfFireDefinition",        damage = 1.2 },           -- Firestorm: 200->240 (must stay below Firerain's total)
         Uriziel    = { class = "UrizielWaveOfDeathVisualDefinition", damage = { base = 200 } }, -- 6th-circle finale (vanilla 90 flat)
-        Blitz      = { class = "LightningRayDefinition",        damage = { base = 70, c2 = 100 } }, -- Chain Lightning (vanilla 10/25); hits _Base/_WithParalysis/_WithoutParalysis. TEST: may be GameplayEffect-driven
+        Blitz      = { class = "LightningRayDefinition",        damage = { base = 60, c2 = 90 } }, -- Chain Lightning C4 (vanilla 10/25 "lachhaft"); hits _Base/_WithParalysis/_WithoutParalysis. CONFIRMED: def-write scales in-game damage 1:1
         Windfaust  = { class = "WindFistDefinition",            damage = 2.0 },           -- Fist of Wind: 20/30/40/50 -> 40/60/80/100 (CC spell, modest buff)
         UntoteVernichten = { class = "DeathToTheUndeadDefinition", damage = { base = 999 } }, -- Destroy Undead, Gothic-2-style (vanilla 500 flat)
 
