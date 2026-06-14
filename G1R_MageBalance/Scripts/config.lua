@@ -23,7 +23,7 @@
 
 return {
     ModName = "G1R Mage Balance",
-    Version = "0.4.0",
+    Version = "0.5.0-dev",
     Enabled = true,
 
     Spells = {
@@ -37,9 +37,16 @@ return {
         Todeshauch = { class = "BreathOfDeathDefinition",      damage = 2.0 },           -- "total schwach" -> buff (breath/AoE)
         Pyrokinese = { class = "PyrokinesisProjectileDefinition", damage = 2.5 },        -- projectile
         Feuersturm = { class = "StormOfFireDefinition",        damage = 1.2 },           -- Firestorm: 200->240 (must stay below Firerain's total)
-        -- Blitz    = { class = "???",                         damage = 2.5 },           -- "lachhaft" — capture its class first
-        -- Absolute-value example (instead of a factor):
-        -- Beispiel = { class = "SomeProjectileDefinition", damage = { base = 80, c2 = 95, c4 = 115, c6 = 150 } },
+        Uriziel    = { class = "UrizielWaveOfDeathVisualDefinition", damage = { base = 200 } }, -- 6th-circle finale (vanilla 90 flat)
+        Blitz      = { class = "LightningRayDefinition",        damage = { base = 70, c2 = 100 } }, -- Chain Lightning (vanilla 10/25); hits _Base/_WithParalysis/_WithoutParalysis. TEST: may be GameplayEffect-driven
+        Windfaust  = { class = "WindFistDefinition",            damage = 2.0 },           -- Fist of Wind: 20/30/40/50 -> 40/60/80/100 (CC spell, modest buff)
+        UntoteVernichten = { class = "DeathToTheUndeadDefinition", damage = { base = 999 } }, -- Destroy Undead, Gothic-2-style (vanilla 500 flat)
+
+        -- Left vanilla on purpose (uncomment + tune if wanted; vanilla values from mb_scanall):
+        -- Sturmfaust = { class = "StormFistDefinition",        damage = 1.0 },           -- 120/160, SuperArmor 250 (stun); feedback: too strong for its mana
+        -- Eiswelle   = { class = "IceWaveProjectileDefinition", damage = 1.0 },          -- 120/150; feedback: stunlock too strong (stun, not base dmg)
+        -- Eisblock   = { class = "IceBlockProjectileDefinition", damage = 1.0 },         -- 60/80 freeze utility
+        -- Absolute-value example: Beispiel = { class = "X", damage = { base = 80, c2 = 95, c4 = 115, c6 = 150 } },
     },
 
     -- ---- diagnostics ----------------------------------------------------------

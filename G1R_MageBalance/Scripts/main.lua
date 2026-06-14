@@ -131,7 +131,12 @@ end
 -- / _Lvl2 / _Lvl3). A config key uses the BASE name; we apply to the base CDO and
 -- every _LvlN variant that exists, so all upgrade levels are balanced by one entry.
 local function def_variants(defName)
-    return { defName, defName .. "_Lvl1", defName .. "_Lvl2", defName .. "_Lvl3" }
+    return {
+        defName,
+        defName .. "_Lvl1", defName .. "_Lvl2", defName .. "_Lvl3", defName .. "_Lvl4",
+        -- Chain Lightning has no _LvlN; its player CDOs are these instead:
+        defName .. "_Base", defName .. "_WithParalysis", defName .. "_WithoutParalysis",
+    }
 end
 
 -- Apply a damage spec to one concrete CDO (snapshots vanilla once, idempotent).
