@@ -123,6 +123,12 @@ end
 local vanilla = _G.__MB_vanilla or {}
 _G.__MB_vanilla = vanilla
 
+-- After the first apply pass we go silent: re-applies (on level/chapter load, and
+-- on open-world streaming events) must NOT spam the log — logging every time caused
+-- hard frame stutter / freezes for players. CDO edits persist, so re-applies only
+-- re-assert the same values; there's nothing useful to log on them.
+local quiet = false
+
 local function cdo_for(defName)
     return StaticFindObject("/Script/Angelscript.Default__" .. defName)
 end
@@ -164,9 +170,11 @@ local function apply_def(cdo, name, damage, label)
         for i, cv in pairs(v.circles) do nc[i] = cv * factor end
     end
     write_damage(cdo, nb, v.baseKind, nc)
-    log.info(string.format("applied %-12s %-30s base %s->%s  c2/4/6 ->%s/%s/%s",
-        tostring(label or ""), name, tostring(v.base), tostring(nb),
-        tostring(nc[1]), tostring(nc[2]), tostring(nc[3])))
+    if not quiet then
+        log.info(string.format("applied %-12s %-30s base %s->%s  c2/4/6 ->%s/%s/%s",
+            tostring(label or ""), name, tostring(v.base), tostring(nb),
+            tostring(nc[1]), tostring(nc[2]), tostring(nc[3])))
+    end
 end
 
 -- Set plain numeric/bool fields directly on a CDO (absolute values, idempotent —
@@ -179,8 +187,8 @@ local function apply_fields(cdo, fields, name)
         ok = pcall(function() cdo[fieldName] = value end)
         local after; pcall(function() after = cdo[fieldName] end)
         if ok and after ~= nil then
-            log.info(string.format("  field %s.%s  %s -> %s", name, fieldName, tostring(before), tostring(after)))
-        else
+            if not quiet then log.info(string.format("  field %s.%s  %s -> %s", name, fieldName, tostring(before), tostring(after))) end
+        elseif not quiet then
             log.warn(string.format("  field %s.%s set FAILED (before=%s)", name, fieldName, tostring(before)))
         end
     end
@@ -247,9 +255,11 @@ local function apply_spellcfg(spell, label)
             end
         end)
     end)
-    log.info(string.format("applied %-12s %-30s mana=%s cast=%s", tostring(label or ""), cfgName,
-        type(spell.mana) == "table" and "abs" or tostring(spell.mana),
-        type(spell.cast) == "table" and "abs" or tostring(spell.cast)))
+    if not quiet then
+        log.info(string.format("applied %-12s %-30s mana=%s cast=%s", tostring(label or ""), cfgName,
+            type(spell.mana) == "table" and "abs" or tostring(spell.mana),
+            type(spell.cast) == "table" and "abs" or tostring(spell.cast)))
+    end
     return true
 end
 
@@ -272,7 +282,7 @@ local function apply_circle_costs()
             if valid(cdo) then
                 local before; pcall(function() before = cdo.SPCost end)
                 if pcall(function() cdo.SPCost = cost end) then
-                    log.info(string.format("circle %d SPCost %s -> %s", i, tostring(before), tostring(cost)))
+                    if not quiet then log.info(string.format("circle %d SPCost %s -> %s", i, tostring(before), tostring(cost))) end
                 end
             else
                 pending = pending + 1
@@ -352,30 +362,47 @@ print(string.format("[%s v%s] loaded\n", config.ModName, config.Version))
 
 if config.Enabled ~= false then
     -- Startup: retry applying until all configured spells' CDOs are loaded, then stop.
-    local done, attempts = false, 0
+    -- Use a shared global flag: apply_all runs on the game thread (a different
+    -- execution context than the LoopAsync callback), so a plain local "done" can
+    -- lag and the loop logs/stops late. A _G flag is visible everywhere; the guard
+    -- inside the deferred fn makes "stopped" log exactly once and stops cleanly.
+    _G.__MB_done = false
+    local attempts = 0
     if type(LoopAsync) == "function" then
         LoopAsync(2000, function()
-            if done then return true end
+            if _G.__MB_done then return true end
             attempts = attempts + 1
             pcall(function() on_game_thread(function()
-                if apply_all() then
-                    done = true
+                if _G.__MB_done then return end
+                local ok = apply_all()
+                quiet = true   -- only the first pass logs; every later apply is silent (anti-stutter)
+                if ok then
+                    _G.__MB_done = true
                     log.info("all configured spells applied; startup loop stopped.")
                 end
             end) end)
             if attempts >= 45 then           -- ~90s cap; spells you don't own may never load
-                if not done then log.info("startup loop stopped (cap); some spell CDOs not loaded yet — will retry on level load.") end
+                if not _G.__MB_done then log.info("startup loop stopped (cap); some spell CDOs not loaded yet — will retry on level load.") end
                 return true
             end
-            return done
+            return _G.__MB_done
         end)
     else
-        run_later(3000, function() on_game_thread(apply_all) end)
+        run_later(3000, function() on_game_thread(function() apply_all(); quiet = true end) end)
     end
 
-    -- Re-apply ~4s after each level / chapter load (in case CDOs get reloaded).
+    -- Re-apply after a level/chapter load — but DEBOUNCED. This hook fires repeatedly
+    -- during open-world streaming; re-running apply_all (and logging) every time caused
+    -- hard frame stutter / multi-second freezes. Collapse bursts to at most one SILENT
+    -- re-apply, then a long cooldown. CDO edits persist, so a missed re-apply is harmless.
+    local reapply_busy = false
     pcall(RegisterHook, "/Script/Engine.PlayerController:ClientRestart", function()
-        run_later(4000, function() pcall(function() on_game_thread(apply_all) end) end)
+        if reapply_busy then return end
+        reapply_busy = true
+        run_later(4000, function()
+            pcall(function() on_game_thread(apply_all) end)
+            run_later(60000, function() reapply_busy = false end)   -- 60s cooldown before another re-apply can be queued
+        end)
     end)
 
     -- Discovery hook: capture spell class names on cast (arg3 = projectile definition).

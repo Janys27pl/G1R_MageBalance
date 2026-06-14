@@ -2,6 +2,16 @@
 
 All notable changes to **G1R Mage Balance** are documented here.
 
+## [0.7.4] — 2026-06-14
+
+### Fixed
+- **Stutter / freezes during open-world traversal (important).** The mod re-applied its
+  values on every PlayerController `ClientRestart`, which fires repeatedly during level
+  streaming (moving, sprinting, changing direction) — and it logged the full apply each
+  time, flooding `UE4SS.log` and hitching the frame. Re-applies are now **debounced** (at
+  most one per ~64s) and **silent after the first pass**. CDO edits persist, so this changes
+  nothing about the balance — it just stops the spam. Reported by **loki613** and **emt1234**.
+
 ## [0.7.3] — 2026-06-14
 
 ### Changed (balance)
