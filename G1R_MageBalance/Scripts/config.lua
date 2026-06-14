@@ -68,6 +68,14 @@ return {
         -- Mana/cast example:        X = { class="X", spellConfig="XSpellConfig", mana = { 12 }, cast = 0.5 },
     },
 
+    -- ---- magic-circle learning cost (LP) --------------------------------------
+    -- How many learning points a trainer charges per magic circle.
+    --   • a TABLE  { c1, c2, c3, c4, c5, c6 }  = per-circle cost (progressive)
+    --   • a NUMBER = same cost for every circle (flat)
+    --   • nil      = keep vanilla (10/15/20/25/30/35 = 135 total)
+    -- Applies to all trainers. (Mechanism: Janys27pl, PR #1.)
+    CircleCost = { 10, 12, 15, 18, 20, 25 },   -- progressive, 100 LP total (cheap start, circle 6 stays a milestone)
+
     -- ---- diagnostics ----------------------------------------------------------
     Verbose    = true,   -- log each spell's class + base damage on first cast ([SPELL] lines)
     DebugSteps = false,  -- DEV: [DBG] breadcrumbs before risky calls (crash tracing)

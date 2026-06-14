@@ -253,6 +253,35 @@ local function apply_spellcfg(spell, label)
     return true
 end
 
+-- ---- magic-circle learning cost (LP) ----------------------------------------
+-- The LP a trainer charges to teach each circle lives on the GameplayEffect
+-- Default__GE_Skill_Mage_Circle_<N> in its SPCost field. config.CircleCost:
+--   number = same cost for all 6 circles (flat)
+--   table  = per-circle absolute { c1, c2, c3, c4, c5, c6 }
+--   nil    = leave vanilla (10/15/20/25/30/35)
+-- Direct absolute write → idempotent, no snapshot needed.
+-- (Mechanism discovered by Janys27pl, PR #1; extended here to per-circle.)
+local function apply_circle_costs()
+    local cc = config.CircleCost
+    if cc == nil then return 0 end
+    local pending = 0
+    for i = 1, 6 do
+        local cost = (type(cc) == "table") and cc[i] or cc
+        if type(cost) == "number" then
+            local cdo = cdo_for("GE_Skill_Mage_Circle_" .. i)
+            if valid(cdo) then
+                local before; pcall(function() before = cdo.SPCost end)
+                if pcall(function() cdo.SPCost = cost end) then
+                    log.info(string.format("circle %d SPCost %s -> %s", i, tostring(before), tostring(cost)))
+                end
+            else
+                pending = pending + 1
+            end
+        end
+    end
+    return pending
+end
+
 -- Apply every spell block in config.Spells. Returns true once all spells that
 -- actually change something have been found (so the startup retry loop can stop).
 local function apply_all()
@@ -269,6 +298,7 @@ local function apply_all()
             end
         end
     end
+    pending = pending + apply_circle_costs()
     return pending == 0
 end
 
