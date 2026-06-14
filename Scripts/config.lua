@@ -41,6 +41,12 @@ return {
         -- Beispiel = { class = "SomeProjectileDefinition", damage = { base = 80, c2 = 95, c4 = 115, c6 = 150 } },
     },
 
+    -- ---- skill costs --------------------------------------------------
+    -- Sets the learning cost for all trainers
+    -- Set nil to use the default system
+    -- Might want to change the cost for SC trainer for balancing reasons
+    CircleCost = 15,
+
     -- ---- diagnostics ----------------------------------------------------------
     Verbose    = true,   -- log each spell's class + base damage on first cast ([SPELL] lines)
     DebugSteps = false,  -- DEV: [DBG] breadcrumbs before risky calls (crash tracing)

@@ -196,6 +196,27 @@ local function apply_spell(class, damage, fields, label)
     return foundAny
 end
 
+-- Apply fixed SP cost to all Magic Circles
+local function apply_circle_costs()
+    local pending = 0
+    if type(config.CircleCost) == "number" then
+        local magicCircles = {
+            "GE_Skill_Mage_Circle_1", "GE_Skill_Mage_Circle_2", "GE_Skill_Mage_Circle_3",
+            "GE_Skill_Mage_Circle_4", "GE_Skill_Mage_Circle_5", "GE_Skill_Mage_Circle_6"
+        }
+        
+        for _, circleName in ipairs(magicCircles) do
+            local circleCdo = cdo_for(circleName)
+            if valid(circleCdo) then
+                pcall(function() circleCdo.SPCost = config.CircleCost end)
+            else
+                pending = pending + 1
+            end
+        end
+    end
+    return pending
+end
+
 -- Apply every spell block in config.Spells. Returns true once all spells that
 -- actually change something have been found (so the startup retry loop can stop).
 local function apply_all()
@@ -207,6 +228,9 @@ local function apply_all()
             if not found and changes then pending = pending + 1 end
         end
     end
+
+    pending = pending + apply_circle_costs()
+
     return pending == 0
 end
 
