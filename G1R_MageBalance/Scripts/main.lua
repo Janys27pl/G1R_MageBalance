@@ -360,10 +360,11 @@ local function scan_all()
             found = found + 1
             local b, bk, c = read_damage(cdo)
             local sa = read_scalar(cdo, "m_SuperArmorDamageBase")
+            local spd = read_scalar(cdo, "m_Speed")
             local hasDmg = (b ~= nil) or (c[1] ~= nil)
-            log.info(string.format("[SCAN] %-17s %-38s base=%-6s c2/4/6=%s/%s/%s  superArmor=%-6s %s",
+            log.info(string.format("[SCAN] %-17s %-38s base=%-6s c2/4/6=%s/%s/%s  superArmor=%-6s speed=%-7s %s",
                 label, name, tostring(b),
-                tostring(c[1]), tostring(c[2]), tostring(c[3]), tostring(sa),
+                tostring(c[1]), tostring(c[2]), tostring(c[3]), tostring(sa), tostring(spd),
                 hasDmg and "" or "(no damage in def -> likely GameplayEffect)"))
         else
             missing = missing + 1
@@ -375,6 +376,72 @@ end
 pcall(RegisterConsoleCommandHandler, "mb_scanall", function(_, _, ar)
     on_game_thread(function() pcall(scan_all) end)
     if ar then pcall(function() ar:Log("[Mage Balance] scanall -> UE4SS.log") end) end
+    return true
+end)
+
+-- =============================================================================
+-- mb_spellcfg : probe CAST TIME + MANA COST for every spell. These live in a
+-- DIFFERENT object than the damage definition: the spell's USpellConfig CDO ->
+-- m_SpellLevels (TArray<FSpellLevelRange{ CastTime, CastManaCost, ManaCostSc }>,
+-- one entry per spell level). Read-only, crash-safe (each access pcall'd; array
+-- elements read via e:get() like the per-circle damage path).
+-- =============================================================================
+local MB_CFG = {
+    -- { friendly label, USpellConfig object name (no "U" prefix, no "Default__") }
+    { "Firebolt",      "ProjectileSpellConfig_FireBolt" },
+    { "Fireball",      "ProjectileSpellConfig_FireBall" },
+    { "BallLightning", "ProjectileSpellConfig_BallLightning" },
+    { "Icebolt",       "ProjectileSpellConfig_IceBolt" },
+    { "FireRain",      "FireRainSpellConfig" },
+    { "StormOfFire",   "StormOfFireSpellConfig" },
+    { "DestroyUndead", "DeathToTheUndeadSpellConfig" },
+    { "Pyrokinesis",   "PyrokinesisSpellConfig" },
+    { "BreathOfDeath", "BreathOfDeathSpellConfig" },
+    { "StormFist",     "StormFistSpellConfig" },
+    { "WindFist",      "FistOfWindSpellConfig" },
+    { "IceBlock",      "IceBlockSpellConfig" },
+    { "IceWave",       "IceWaveSpellConfig" },
+    { "Uriziel",       "UrizielWaveOfDeathSpellConfig" },
+    { "ChainLightning","ChainLightningSpellConfig" },
+    { "Light",         "LightSpellConfig" },
+}
+local function read_levels(cfg)
+    local out = {}
+    pcall(function()
+        cfg.m_SpellLevels:ForEach(function(idx, e)
+            local ct, cm, ms
+            pcall(function() ct = e:get().CastTime end)
+            pcall(function() cm = e:get().CastManaCost end)
+            pcall(function() ms = e:get().ManaCostSc end)
+            out[#out + 1] = string.format("L%d cast=%s mana=%s(sc%s)", idx, tostring(ct), tostring(cm), tostring(ms))
+        end)
+    end)
+    return out
+end
+local function scan_cfg()
+    log.info("==== mb_spellcfg: cast time + mana cost per spell ====")
+    local found, missing = 0, 0
+    for _, row in ipairs(MB_CFG) do
+        local label, name = row[1], row[2]
+        local cdo = cdo_for(name)
+        if valid(cdo) then
+            found = found + 1
+            local lv = read_levels(cdo)
+            if #lv > 0 then
+                log.info(string.format("[CFG] %-15s %-34s %s", label, name, table.concat(lv, " | ")))
+            else
+                log.info(string.format("[CFG] %-15s %-34s (no m_SpellLevels / empty)", label, name))
+            end
+        else
+            missing = missing + 1
+            log.info(string.format("[CFG] %-15s %-34s (no CDO loaded)", label, name))
+        end
+    end
+    log.info(string.format("==== mb_spellcfg done: %d found, %d not loaded ====", found, missing))
+end
+pcall(RegisterConsoleCommandHandler, "mb_spellcfg", function(_, _, ar)
+    on_game_thread(function() pcall(scan_cfg) end)
+    if ar then pcall(function() ar:Log("[Mage Balance] spellcfg -> UE4SS.log") end) end
     return true
 end)
 
@@ -470,4 +537,4 @@ pcall(RegisterConsoleCommandHandler, "mb_fields", function(a, b, ar)
     return true
 end)
 
-log.info("ready. Console: mb_apply, mb_status, mb_scanall, mb_try <name>, mb_fields <name>. Cast -> [SPELL].")
+log.info("ready. Console: mb_apply, mb_status, mb_scanall, mb_spellcfg, mb_try <name>, mb_fields <name>. Cast -> [SPELL].")
