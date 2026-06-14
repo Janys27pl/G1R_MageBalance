@@ -45,11 +45,12 @@ Very nice early-game QoL for a mage start.
   trader's live `m_Items` (TraderManager, same as Rich Merchants).
 - **Difficulty: medium-easy** — technique known & proven. Class = `ItAr_Rune_Light`.
 
-### 💰 Lower cost to learn magic circles
-Reduce the requirement/cost to learn the magic circles, to smooth mage progression.
-- **Where:** likely a progression/difficulty-settings object or the teacher's learn cost
-  (cf. trainer ore costs handled by EconomyTweaks). Needs recon.
-- **Difficulty: medium** — locate the learn-cost field(s).
+### ✅ Lower cost to learn magic circles — DONE
+Config key `CircleCost` (number = flat, or per-circle table) writes
+`GE_Skill_Mage_Circle_<N>.SPCost`. Default `{ 10, 12, 15, 18, 20, 25 }` = 100 LP
+(vanilla 135). Mechanism found by Janys27pl (PR #1), extended to per-circle.
+- **Still open / idea:** make it **per-trainer** (e.g. Swamp Camp pricier) — the
+  SPCost lives on the GE, so this would need a different lever (per-trainer config).
 
 ### 🧙 Mage progression overhaul (rank 0 → 3 feels instant)
 Bigger picture: vanilla mage progression is thin — you jump from rank 0 to rank 3 almost
