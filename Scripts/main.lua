@@ -131,7 +131,12 @@ end
 -- / _Lvl2 / _Lvl3). A config key uses the BASE name; we apply to the base CDO and
 -- every _LvlN variant that exists, so all upgrade levels are balanced by one entry.
 local function def_variants(defName)
-    return { defName, defName .. "_Lvl1", defName .. "_Lvl2", defName .. "_Lvl3" }
+    return {
+        defName,
+        defName .. "_Lvl1", defName .. "_Lvl2", defName .. "_Lvl3", defName .. "_Lvl4",
+        -- Chain Lightning has no _LvlN; its player CDOs are these instead:
+        defName .. "_Base", defName .. "_WithParalysis", defName .. "_WithoutParalysis",
+    }
 end
 
 -- Apply a damage spec to one concrete CDO (snapshots vanilla once, idempotent).
@@ -215,6 +220,78 @@ local function apply_circle_costs()
         end
     end
     return pending
+-- ---- cast time + mana cost (a SEPARATE object: the spell's USpellConfig) -----
+-- Named by the block's `spellConfig` key. Values live in m_SpellLevels (array of
+-- FSpellLevelRange{ CastTime, CastManaCost, ManaCostSc }, one per spell level).
+-- We snapshot vanilla once, then write vanilla×factor (number) or absolute
+-- per-level values (table). Idempotent. Array elements written via e:get() —
+-- the same safe path as the per-circle damage progression.
+local function read_levels_raw(cfg)
+    local out = {}
+    pcall(function()
+        cfg.m_SpellLevels:ForEach(function(idx, e)
+            local t = {}
+            pcall(function() t.mana = e:get().CastManaCost end)
+            pcall(function() t.cast = e:get().CastTime end)
+            out[idx] = t
+        end)
+    end)
+    return out
+end
+-- spec: NUMBER = factor on vanilla; TABLE = absolute per level (spec[idx]).
+-- Returns nil to keep vanilla (factor 1.0, or no absolute entry for that level).
+local function level_target(spec, idx, vanillaVal)
+    if type(spec) == "table" then return spec[idx] end
+    local f = tonumber(spec) or 1.0
+    if f == 1.0 then return nil end
+    return (type(vanillaVal) == "number") and (vanillaVal * f) or nil
+end
+local function apply_spellcfg(spell, label)
+    local cfgName = spell.spellConfig
+    if not cfgName or (spell.mana == nil and spell.cast == nil) then return true end
+    local cdo = cdo_for(cfgName)
+    if not valid(cdo) then return false end
+    local key = full_name(cdo)
+    if vanilla[key] == nil then vanilla[key] = { levels = read_levels_raw(cdo) } end
+    local van = vanilla[key].levels or {}
+    pcall(function()
+        cdo.m_SpellLevels:ForEach(function(idx, e)
+            if spell.mana ~= nil then
+                local t = level_target(spell.mana, idx, van[idx] and van[idx].mana)
+                if type(t) == "number" then pcall(function() e:get().CastManaCost = t end) end
+            end
+            if spell.cast ~= nil then
+                local t = level_target(spell.cast, idx, van[idx] and van[idx].cast)
+                if type(t) == "number" then pcall(function() e:get().CastTime = t end) end
+            end
+        end)
+    end)
+    log.info(string.format("applied %-12s %-30s mana=%s cast=%s", tostring(label or ""), cfgName,
+        type(spell.mana) == "table" and "abs" or tostring(spell.mana),
+        type(spell.cast) == "table" and "abs" or tostring(spell.cast)))
+    return true
+end
+
+
+-- Apply fixed SP cost to all Magic Circles
+local function apply_circle_costs()
+    local pending = 0
+    if type(config.CircleCost) == "number" then
+        local magicCircles = {
+            "GE_Skill_Mage_Circle_1", "GE_Skill_Mage_Circle_2", "GE_Skill_Mage_Circle_3",
+            "GE_Skill_Mage_Circle_4", "GE_Skill_Mage_Circle_5", "GE_Skill_Mage_Circle_6"
+        }
+        
+        for _, circleName in ipairs(magicCircles) do
+            local circleCdo = cdo_for(circleName)
+            if valid(circleCdo) then
+                pcall(function() circleCdo.SPCost = config.CircleCost end)
+            else
+                pending = pending + 1
+            end
+        end
+    end
+    return pending
 end
 
 -- Apply every spell block in config.Spells. Returns true once all spells that
@@ -222,10 +299,15 @@ end
 local function apply_all()
     local pending = 0
     for niceName, spell in pairs(config.Spells or {}) do
-        if type(spell) == "table" and spell.class and spell.enabled ~= false then
-            local found = apply_spell(spell.class, spell.damage, spell.fields, niceName)
-            local changes = (spell.damage ~= nil and spell.damage ~= 1.0) or spell.fields ~= nil
-            if not found and changes then pending = pending + 1 end
+        if type(spell) == "table" and spell.enabled ~= false then
+            if spell.class then
+                local found = apply_spell(spell.class, spell.damage, spell.fields, niceName)
+                local changes = (spell.damage ~= nil and spell.damage ~= 1.0) or spell.fields ~= nil
+                if not found and changes then pending = pending + 1 end
+            end
+            if spell.spellConfig and (spell.mana ~= nil or spell.cast ~= nil) then
+                if not apply_spellcfg(spell, niceName) then pending = pending + 1 end
+            end
         end
     end
 
@@ -328,6 +410,142 @@ pcall(RegisterConsoleCommandHandler, "mb_status", function(_, _, ar)
     return true
 end)
 
+-- =============================================================================
+-- mb_scanall : one-shot probe of EVERY known player damage-spell definition.
+-- Class names were harvested from the CXX header dump (all classes deriving from
+-- USpellProjectileDefinition / UWindProjectile_Base). The Default__ CDO exists in
+-- memory whether or not you own the rune, so this reads vanilla damage for spells
+-- you don't have yet (Uriziel, the wind runes, Chain Lightning, …).
+-- Crash-safe: every probe + read is pcall'd; missing CDOs are skipped; damage maps
+-- are read via the same safe path as mb_status (never touches a map key). Pure
+-- read-only — changes nothing.
+-- =============================================================================
+local MB_SCAN = {
+    -- { friendly label, definition object name (no "U" prefix, no "Default__") }
+    { "Firebolt",        "FireBoltProjectileDefinition" },
+    { "Fireball L1",     "FireBallProjectileDefinition_Lvl1" },
+    { "Fireball L2",     "FireBallProjectileDefinition_Lvl2" },
+    { "Fireball L3",     "FireBallProjectileDefinition_Lvl3" },
+    { "BallLightning B", "BallLightningDefinition_Base" },
+    { "BallLightning L1","BallLightningDefinition_Lvl1" },
+    { "BallLightning L2","BallLightningDefinition_Lvl2" },
+    { "BallLightning L3","BallLightningDefinition_Lvl3" },
+    { "BallLightning L4","BallLightningDefinition_Lvl4" },
+    { "Icebolt",         "IceBoltProjectileDefinition" },
+    { "Iceblock",        "IceBlockProjectileDefinition" },
+    { "IceWave",         "IceWaveProjectileDefinition" },
+    { "FireRain",        "FireRainDefinition" },
+    { "StormOfFire",     "StormOfFireDefinition" },
+    { "DestroyUndead",   "DeathToTheUndeadDefinition" },
+    { "Pyrokinesis",     "PyrokinesisProjectileDefinition" },
+    { "Pyrokinesis Base","PyrokinesisProjectileDefinitionBase" },
+    { "BreathOfDeath",   "BreathOfDeathDefinition" },
+    { "StormFist",       "StormFistDefinition" },
+    { "WindFist",        "WindFistDefinition" },
+    { "Uriziel",         "UrizielWaveOfDeathVisualDefinition" },
+    { "ChainLtg Base",   "LightningRayDefinition_Base" },
+    { "ChainLtg +Para",  "LightningRayDefinition_WithParalysis" },
+    { "ChainLtg -Para",  "LightningRayDefinition_WithoutParalysis" },
+}
+local function read_scalar(cdo, field)
+    local v; if pcall(function() v = cdo[field] end) and type(v) == "number" then return v end
+    return nil
+end
+local function scan_all()
+    log.info("==== mb_scanall: probing all known spell definitions ====")
+    local found, missing = 0, 0
+    for _, row in ipairs(MB_SCAN) do
+        local label, name = row[1], row[2]
+        local cdo = cdo_for(name)
+        if valid(cdo) then
+            found = found + 1
+            local b, bk, c = read_damage(cdo)
+            local sa = read_scalar(cdo, "m_SuperArmorDamageBase")
+            local spd = read_scalar(cdo, "m_Speed")
+            local hasDmg = (b ~= nil) or (c[1] ~= nil)
+            log.info(string.format("[SCAN] %-17s %-38s base=%-6s c2/4/6=%s/%s/%s  superArmor=%-6s speed=%-7s %s",
+                label, name, tostring(b),
+                tostring(c[1]), tostring(c[2]), tostring(c[3]), tostring(sa), tostring(spd),
+                hasDmg and "" or "(no damage in def -> likely GameplayEffect)"))
+        else
+            missing = missing + 1
+            log.info(string.format("[SCAN] %-17s %-38s (no CDO loaded)", label, name))
+        end
+    end
+    log.info(string.format("==== mb_scanall done: %d found, %d not loaded ====", found, missing))
+end
+pcall(RegisterConsoleCommandHandler, "mb_scanall", function(_, _, ar)
+    on_game_thread(function() pcall(scan_all) end)
+    if ar then pcall(function() ar:Log("[Mage Balance] scanall -> UE4SS.log") end) end
+    return true
+end)
+
+-- =============================================================================
+-- mb_spellcfg : probe CAST TIME + MANA COST for every spell. These live in a
+-- DIFFERENT object than the damage definition: the spell's USpellConfig CDO ->
+-- m_SpellLevels (TArray<FSpellLevelRange{ CastTime, CastManaCost, ManaCostSc }>,
+-- one entry per spell level). Read-only, crash-safe (each access pcall'd; array
+-- elements read via e:get() like the per-circle damage path).
+-- =============================================================================
+local MB_CFG = {
+    -- { friendly label, USpellConfig object name (no "U" prefix, no "Default__") }
+    { "Firebolt",      "ProjectileSpellConfig_FireBolt" },
+    { "Fireball",      "ProjectileSpellConfig_FireBall" },
+    { "BallLightning", "ProjectileSpellConfig_BallLightning" },
+    { "Icebolt",       "ProjectileSpellConfig_IceBolt" },
+    { "FireRain",      "FireRainSpellConfig" },
+    { "StormOfFire",   "StormOfFireSpellConfig" },
+    { "DestroyUndead", "DeathToTheUndeadSpellConfig" },
+    { "Pyrokinesis",   "PyrokinesisSpellConfig" },
+    { "BreathOfDeath", "BreathOfDeathSpellConfig" },
+    { "StormFist",     "StormFistSpellConfig" },
+    { "WindFist",      "FistOfWindSpellConfig" },
+    { "IceBlock",      "IceBlockSpellConfig" },
+    { "IceWave",       "IceWaveSpellConfig" },
+    { "Uriziel",       "UrizielWaveOfDeathSpellConfig" },
+    { "ChainLightning","ChainLightningSpellConfig" },
+    { "Light",         "LightSpellConfig" },
+}
+local function read_levels(cfg)
+    local out = {}
+    pcall(function()
+        cfg.m_SpellLevels:ForEach(function(idx, e)
+            local ct, cm, ms
+            pcall(function() ct = e:get().CastTime end)
+            pcall(function() cm = e:get().CastManaCost end)
+            pcall(function() ms = e:get().ManaCostSc end)
+            out[#out + 1] = string.format("L%d cast=%s mana=%s(sc%s)", idx, tostring(ct), tostring(cm), tostring(ms))
+        end)
+    end)
+    return out
+end
+local function scan_cfg()
+    log.info("==== mb_spellcfg: cast time + mana cost per spell ====")
+    local found, missing = 0, 0
+    for _, row in ipairs(MB_CFG) do
+        local label, name = row[1], row[2]
+        local cdo = cdo_for(name)
+        if valid(cdo) then
+            found = found + 1
+            local lv = read_levels(cdo)
+            if #lv > 0 then
+                log.info(string.format("[CFG] %-15s %-34s %s", label, name, table.concat(lv, " | ")))
+            else
+                log.info(string.format("[CFG] %-15s %-34s (no m_SpellLevels / empty)", label, name))
+            end
+        else
+            missing = missing + 1
+            log.info(string.format("[CFG] %-15s %-34s (no CDO loaded)", label, name))
+        end
+    end
+    log.info(string.format("==== mb_spellcfg done: %d found, %d not loaded ====", found, missing))
+end
+pcall(RegisterConsoleCommandHandler, "mb_spellcfg", function(_, _, ar)
+    on_game_thread(function() pcall(scan_cfg) end)
+    if ar then pcall(function() ar:Log("[Mage Balance] spellcfg -> UE4SS.log") end) end
+    return true
+end)
+
 -- mb_try <NameBase> : safely probe StaticFindObject for a spell definition by name
 -- (tries common suffix variants) and dump its damage if found. No hot hook → no
 -- crash. Use to locate non-projectile-cast spells, e.g.  mb_try FireRain
@@ -420,4 +638,4 @@ pcall(RegisterConsoleCommandHandler, "mb_fields", function(a, b, ar)
     return true
 end)
 
-log.info("ready. Console: mb_apply, mb_status, mb_try <name>, mb_fields <name>. Cast -> [SPELL].")
+log.info("ready. Console: mb_apply, mb_status, mb_scanall, mb_spellcfg, mb_try <name>, mb_fields <name>. Cast -> [SPELL].")
